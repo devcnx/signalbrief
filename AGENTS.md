@@ -44,6 +44,49 @@ npm run dev
 - **AI is optional.** App works without API key — falls back to raw change output.
 - **Every newsletter item needs a source URL.** No unsourced AI claims.
 
+## Branching and PR workflow
+
+**Never push directly to main.** All work goes through branches and PRs.
+
+**Naming convention:** lowercase, hyphen-separated (unless it's an acronym like PR, API, SQL).
+
+**Branch naming:** `prefix/task-description`
+- `phase-1/init-nextjs-app`
+- `phase-2/build-source-table`
+- `fix/snapshot-path-bug`
+
+**Commit messages:** `prefix: short description`
+- `phase-1: init next.js app with typescript`
+- `phase-2: add source table component`
+- `fix: correct snapshot file path`
+
+**PR workflow:**
+1. Create branch from main
+2. Commit changes (atomic, prefixed commits)
+3. Push branch
+4. Create PR → main
+5. Wait for review before merge
+
+**Reviews:** Brittaney reviews manually, or `pr-review-ollama` at `/Users/brittaneyperry-morgan/Desktop/2026/Tooling/pr-review-ollama` (requires setup for this repo first).
+
+**Examples:**
+
+Single task:
+```
+branch:  phase-1/init-nextjs-app
+commit:  phase-1: init next.js app with typescript
+pr:      phase-1: init next.js app with typescript (#9)
+```
+
+Related batch:
+```
+branch:  phase-1/add-tailwind-shadcn-prisma
+commit:  phase-1: add tailwind css
+commit:  phase-1: add shadcn/ui component library
+commit:  phase-1: install prisma and configure sqlite
+pr:      phase-1: add tailwind, shadcn/ui, and prisma (#10, #11, #12)
+```
+
 ## Packet docs
 
 Full specs live in `ai-newsletter-local-web-app-packet/`:
