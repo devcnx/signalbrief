@@ -67,7 +67,7 @@ npm run dev
 4. Create PR → main
 5. Wait for review before merge
 
-**Reviews:** Brittaney reviews manually, or `pr-review-ollama` at `/Users/brittaneyperry-morgan/Desktop/2026/Tooling/pr-review-ollama` (requires setup for this repo first).
+**Reviews:** Brittaney reviews manually, or `pr-review-ollama` (requires setup for this repo first).
 
 **Examples:**
 
@@ -75,7 +75,7 @@ Single task:
 ```
 branch:  phase-1/init-nextjs-app
 commit:  phase-1: init next.js app with typescript
-pr:      phase-1: init next.js app with typescript (#9)
+pr:      phase-1: init next.js app with typescript (#issue)
 ```
 
 Related batch:
@@ -84,7 +84,7 @@ branch:  phase-1/add-tailwind-shadcn-prisma
 commit:  phase-1: add tailwind css
 commit:  phase-1: add shadcn/ui component library
 commit:  phase-1: install prisma and configure sqlite
-pr:      phase-1: add tailwind, shadcn/ui, and prisma (#10, #11, #12)
+pr:      phase-1: add tailwind, shadcn/ui, and prisma
 ```
 
 ## Packet docs
