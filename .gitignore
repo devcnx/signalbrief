@@ -34,8 +34,11 @@ yarn-error.log*
 next-env.d.ts
 
 # prisma
+dev.db
+dev.db-journal
 data/ai-newsletter.sqlite
 data/ai-newsletter.sqlite-journal
+src/generated/
 
 # snapshots and exports (local runtime data)
 data/snapshots/
