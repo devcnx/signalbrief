@@ -44,6 +44,59 @@ npm run dev
 - **AI is optional.** App works without API key — falls back to raw change output.
 - **Every newsletter item needs a source URL.** No unsourced AI claims.
 
+## Branching and PR workflow
+
+**Never push directly to main.** All work goes through branches and PRs.
+
+**Naming convention:** lowercase, hyphen-separated. In *branch names*, all words (including acronyms) must be lowercase. In *commit prefixes and PR titles*, only these acronyms may be uppercase: `PR`, `API`, `SQL`, `UI`, `URL`, `HTML`, `CSS`. Proper nouns (e.g., `next.js`, `typescript`, `github`) must remain lowercase unless they are one of the allowed acronyms.
+
+**Branch naming:** `prefix/description` — exactly one slash. Use only lowercase letters, digits, and hyphens (no dots, slashes, or special characters). Slashes in commit descriptions (e.g., `shadcn/ui`) are allowed — just not in branch names.
+- `phase-1/init-nextjs-app`
+- `phase-2/build-source-table`
+- `fix/snapshot-path-bug`
+- `fix/api-endpoint-error`
+
+**Prefix categories:** `phase-N` (sequential phases), `fix`, `feat`, `chore`, `docs`, `refactor`, `test`.
+
+**Commit prefixes:** `prefix: short description`  
+The prefix matches the branch prefix (first segment before the slash). Commit descriptions should summarize the change — they don't need to mirror the branch name verbatim. The branch description (after the slash) can be more detailed, while the PR title should be a concise summary.
+- `phase-1: init next.js app with typescript`
+- `phase-2: add source table component`
+- `fix: correct snapshot file path`
+- `fix: update API endpoint error handling`
+
+**PR workflow:**
+1. Create branch from main
+2. Commit changes (atomic, prefixed commits) — each commit should represent a single logical change
+3. Push branch
+4. Create PR → main
+5. Wait for review before merge
+6. After merging, delete the feature branch
+
+**Reviews:** PRs are reviewed by designated reviewer(s). The `pr-review-ollama` tool provides automated feedback on PRs — see `2026/Tooling/pr-review-ollama/README.md` for setup.
+
+**Merge strategy:** PRs are merged using squash. The PR title must follow the same `prefix: description` format as commits. The PR number is automatically appended by GitHub.
+
+**Examples:**
+
+Single task:
+```
+branch:   phase-1/init-nextjs-app
+commit:   phase-1: init next.js app with typescript
+pr title: phase-1: init next.js app with typescript
+squash:   phase-1: init next.js app with typescript (#42)
+```
+
+Related batch:
+```
+branch:   phase-1/add-tailwind-shadcn-ui-prisma
+commit:   phase-1: add tailwind css
+commit:   phase-1: add shadcn/ui component library
+commit:   phase-1: install prisma and configure sqlite
+pr title: phase-1: add tailwind, shadcn/ui, and prisma
+squash:   phase-1: add tailwind, shadcn/ui, and prisma (#51)
+```
+
 ## Packet docs
 
 Full specs live in `ai-newsletter-local-web-app-packet/`:
