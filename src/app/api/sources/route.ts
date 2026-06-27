@@ -12,7 +12,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json()
+  let body
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+  }
 
   const errors = validateSourceInput(body)
   if (Object.keys(errors).length > 0) {

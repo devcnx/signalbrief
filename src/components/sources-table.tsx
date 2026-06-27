@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Pencil, Trash2, Plus } from "lucide-react"
 
@@ -89,6 +89,10 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Source | null>(null)
 
+  useEffect(() => {
+    setSources(initialSources)
+  }, [initialSources])
+
   const resetForm = useCallback(() => {
     setForm(defaultForm)
     setErrors({})
@@ -96,75 +100,93 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
 
   async function handleAddClick() {
     setSaving(true)
-    const res = await fetch("/api/sources", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    })
-    if (!res.ok) {
-      const data = await res.json()
-      setErrors(data.errors || { general: "Failed to create source" })
+    setErrorMessage(null)
+    try {
+      const res = await fetch("/api/sources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setErrors(data.errors || { general: "Failed to create source" })
+        return
+      }
+      const created = await res.json()
+      setSources((prev) => [created, ...prev])
+      setAddOpen(false)
+      resetForm()
+      router.refresh()
+    } catch {
+      setErrorMessage("Network error — failed to create source")
+    } finally {
       setSaving(false)
-      return
     }
-    const created = await res.json()
-    setSources((prev) => [created, ...prev])
-    setAddOpen(false)
-    resetForm()
-    setSaving(false)
-    router.refresh()
   }
 
   async function handleEditClick() {
     if (!editingId) return
     setSaving(true)
-    const res = await fetch(`/api/sources/${editingId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    })
-    if (!res.ok) {
-      const data = await res.json()
-      setErrors(data.errors || { general: "Failed to update source" })
+    setErrorMessage(null)
+    try {
+      const res = await fetch(`/api/sources/${editingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setErrors(data.errors || { general: "Failed to update source" })
+        return
+      }
+      const updated = await res.json()
+      setSources((prev) => prev.map((s) => (s.id === editingId ? updated : s)))
+      setEditOpen(false)
+      setEditingId(null)
+      resetForm()
+      router.refresh()
+    } catch {
+      setErrorMessage("Network error — failed to update source")
+    } finally {
       setSaving(false)
-      return
     }
-    const updated = await res.json()
-    setSources((prev) => prev.map((s) => (s.id === editingId ? updated : s)))
-    setEditOpen(false)
-    setEditingId(null)
-    resetForm()
-    setSaving(false)
-    router.refresh()
   }
 
   async function handleToggle(source: Source) {
     setErrorMessage(null)
-    const res = await fetch(`/api/sources/${source.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ active: !source.active }),
-    })
-    if (res.ok) {
-      const updated = await res.json()
-      setSources((prev) => prev.map((s) => (s.id === source.id ? updated : s)))
-      router.refresh()
-    } else {
-      setErrorMessage("Failed to toggle source status")
+    try {
+      const res = await fetch(`/api/sources/${source.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !source.active }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setSources((prev) => prev.map((s) => (s.id === source.id ? updated : s)))
+        router.refresh()
+      } else {
+        setErrorMessage("Failed to toggle source status")
+      }
+    } catch {
+      setErrorMessage("Network error — failed to toggle source")
     }
   }
 
   async function handleDelete(source: Source) {
     setErrorMessage(null)
-    const res = await fetch(`/api/sources/${source.id}`, {
-      method: "DELETE",
-    })
-    if (res.ok) {
-      const updated = await res.json()
-      setSources((prev) => prev.map((s) => (s.id === source.id ? updated : s)))
-      router.refresh()
-    } else {
-      setErrorMessage("Failed to deactivate source")
+    try {
+      const res = await fetch(`/api/sources/${source.id}`, {
+        method: "DELETE",
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setSources((prev) => prev.map((s) => (s.id === source.id ? updated : s)))
+        router.refresh()
+      } else {
+        setErrorMessage("Failed to deactivate source")
+      }
+    } catch {
+      setErrorMessage("Network error — failed to deactivate source")
     }
   }
 
