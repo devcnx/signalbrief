@@ -48,16 +48,18 @@ npm run dev
 
 **Never push directly to main.** All work goes through branches and PRs.
 
-**Naming convention:** lowercase, hyphen-separated. In *branch names*, all words (including acronyms) must be lowercase. In *commit prefixes and PR titles*, only these acronyms may be uppercase: `PR`, `API`, `SQL`, `UI`, `URL`, `HTML`, `CSS`. Proper nouns (e.g., `next.js`, `typescript`) must remain lowercase unless they are one of the allowed acronyms.
+**Naming convention:** lowercase, hyphen-separated. In *branch names*, all words (including acronyms) must be lowercase. In *commit prefixes and PR titles*, only these acronyms may be uppercase: `PR`, `API`, `SQL`, `UI`, `URL`, `HTML`, `CSS`. Proper nouns (e.g., `next.js`, `typescript`, `github`) must remain lowercase unless they are one of the allowed acronyms.
 
-**Branch naming:** `prefix/description` — exactly one slash. Use only lowercase letters, digits, and hyphens (no dots or special characters).
+**Branch naming:** `prefix/description` — exactly one slash. Use only lowercase letters, digits, and hyphens (no dots, slashes, or special characters). Slashes in commit descriptions (e.g., `shadcn/ui`) are allowed — just not in branch names.
 - `phase-1/init-nextjs-app`
 - `phase-2/build-source-table`
 - `fix/snapshot-path-bug`
 - `fix/api-endpoint-error`
 
+**Prefix categories:** `phase-N` (sequential phases), `fix`, `feat`, `chore`, `docs`, `refactor`, `test`.
+
 **Commit prefixes:** `prefix: short description`  
-The prefix matches the branch prefix (first segment before the slash). Commit descriptions should summarize the change — they don't need to mirror the branch name verbatim. The description in the branch name (after the slash) can be more specific than the PR title.
+The prefix matches the branch prefix (first segment before the slash). Commit descriptions should summarize the change — they don't need to mirror the branch name verbatim. The branch description (after the slash) can be more detailed, while the PR title should be a concise summary.
 - `phase-1: init next.js app with typescript`
 - `phase-2: add source table component`
 - `fix: correct snapshot file path`
