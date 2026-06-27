@@ -79,8 +79,9 @@ The prefix matches the branch prefix (first segment before the slash). Commit de
 1. After creating a PR, wait ~60–90 seconds for pr-review-ollama to trigger
 2. Check PR comments for review feedback
 3. If there are actionable changes, present them and get explicit approval before applying
-4. Repeat until review is clean, then merge
-5. If pr-review-ollama is not running (webhook down, tunnel offline, etc.), proceed with normal manual review flow
+4. When applying fixes, comment on the PR describing what was changed and why
+5. Repeat until review is clean, then merge
+6. If pr-review-ollama is not running (webhook down, tunnel offline, etc.), proceed with normal manual review flow
 
 **Merge strategy:** PRs are merged using squash. The PR title must follow the same `prefix: description` format as commits. The PR number is automatically appended by GitHub.
 
