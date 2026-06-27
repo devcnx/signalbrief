@@ -1,0 +1,150 @@
+// SignalBrief starter Prisma schema
+// Database: local SQLite
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Source {
+  id        String   @id @default(cuid())
+  provider  String
+  name      String
+  url       String   @unique
+  type      String   // docs_page, changelog, release_notes, rss, github_release
+  category  String
+  priority  String   // high, medium, low
+  active    Boolean  @default(true)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  snapshots Snapshot[]
+  changes   DetectedChange[]
+  items     NewsletterItem[]
+
+  @@index([active])
+  @@index([provider])
+  @@index([category])
+}
+
+model Run {
+  id             String    @id @default(cuid())
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  status         String    // pending, running, completed, completed_with_errors, failed
+  sourcesChecked Int       @default(0)
+  changesFound   Int       @default(0)
+  errorsCount    Int       @default(0)
+  notes          String?
+
+  snapshots  Snapshot[]
+  changes    DetectedChange[]
+  newsletter Newsletter?
+
+  @@index([startedAt])
+  @@index([status])
+}
+
+model Snapshot {
+  id                 String   @id @default(cuid())
+  sourceId           String
+  runId              String
+  fetchedAt          DateTime @default(now())
+  status             String   // success, failed, skipped
+  statusCode         Int?
+  contentHash        String?
+  rawContentPath     String?
+  cleanedContentPath String?
+  errorMessage       String?
+
+  source  Source @relation(fields: [sourceId], references: [id])
+  run     Run    @relation(fields: [runId], references: [id])
+  changes DetectedChange[]
+
+  @@index([sourceId])
+  @@index([runId])
+  @@index([contentHash])
+  @@index([status])
+}
+
+model DetectedChange {
+  id              String   @id @default(cuid())
+  sourceId        String
+  runId           String
+  snapshotId      String
+  changeType      String   // new, updated, removed
+  significance    String   // high, medium, low, noise
+  changedText     String
+  alreadyIncluded Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  source   Source   @relation(fields: [sourceId], references: [id])
+  run      Run      @relation(fields: [runId], references: [id])
+  snapshot Snapshot @relation(fields: [snapshotId], references: [id])
+  item     NewsletterItem?
+
+  @@index([sourceId])
+  @@index([runId])
+  @@index([snapshotId])
+  @@index([significance])
+  @@index([alreadyIncluded])
+}
+
+model Newsletter {
+  id             String   @id @default(cuid())
+  runId          String   @unique
+  title          String
+  markdownBody   String
+  htmlBody       String?
+  status         String   // draft, reviewed, exported
+  exportPathMd   String?
+  exportPathHtml String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  run   Run              @relation(fields: [runId], references: [id])
+  items NewsletterItem[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model NewsletterItem {
+  id               String   @id @default(cuid())
+  newsletterId     String
+  sourceId         String
+  detectedChangeId String   @unique
+  title            String
+  provider         String
+  category         String
+  impactLevel      String   // high, medium, low
+  summary          String
+  whyItMatters     String
+  recommendedAction String?
+  sourceUrl        String
+  confidence       String   // high, medium, low
+  approved         Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  newsletter     Newsletter     @relation(fields: [newsletterId], references: [id])
+  source         Source         @relation(fields: [sourceId], references: [id])
+  detectedChange DetectedChange @relation(fields: [detectedChangeId], references: [id])
+
+  @@index([newsletterId])
+  @@index([sourceId])
+  @@index([impactLevel])
+  @@index([approved])
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
