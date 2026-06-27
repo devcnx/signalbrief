@@ -48,7 +48,7 @@ npm run dev
 
 **Never push directly to main.** All work goes through branches and PRs.
 
-**Naming convention:** lowercase, hyphen-separated. Acronyms (e.g., `PR`, `API`, `SQL`) may be uppercase, but it's also acceptable to keep them lowercase for simplicity (e.g., `api`, `sql`). All other words must be lowercase.
+**Naming convention:** lowercase, hyphen-separated. Prefer lowercase for acronyms (e.g., `api`, `sql`) to keep names consistent, but uppercase is acceptable if the acronym is widely recognized (e.g., `PR`, `API`).
 
 **Branch naming:** `prefix/task-description`
 - `phase-1/init-nextjs-app`
@@ -57,7 +57,7 @@ npm run dev
 - `fix/api-endpoint-error`
 
 **Commit prefixes:** `prefix: short description`  
-The prefix is the task identifier—the part before the first `/` in the branch name (e.g., `phase-1`, `fix`). It does *not* include the full branch name.
+The prefix is the first segment of the branch name—the part before the first `/` (e.g., `phase-1`, `fix`).
 - `phase-1: init next.js app with typescript`
 - `phase-2: add source table component`
 - `fix: correct snapshot file path`
@@ -70,9 +70,9 @@ The prefix is the task identifier—the part before the first `/` in the branch 
 4. Create PR → main
 5. Wait for review before merge
 
-**Reviews:** Reviews are performed by Brittaney or other team members, and can also be assisted by the `pr-review-ollama` tool (requires initial setup).
+**Reviews:** Reviews are performed by Brittaney or other team members. The `pr-review-ollama` tool provides automated feedback on PRs (requires initial setup).
 
-**Merge strategy:** PRs are merged using squash.
+**Merge strategy:** PRs are merged using squash. Use the PR title as the squash commit message (follows the same prefix convention).
 
 **Examples:**
 
