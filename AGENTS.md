@@ -48,16 +48,16 @@ npm run dev
 
 **Never push directly to main.** All work goes through branches and PRs.
 
-**Naming convention:** lowercase, hyphen-separated. Prefer lowercase for acronyms (e.g., `api`, `sql`) to keep names consistent, but uppercase is acceptable if the acronym is widely recognized (e.g., `PR`, `API`).
+**Naming convention:** lowercase, hyphen-separated. Only these acronyms may be uppercase: `PR`, `API`, `SQL`. All other words must be lowercase.
 
-**Branch naming:** `prefix/task-description`
+**Branch naming:** `prefix/description` — exactly one slash
 - `phase-1/init-nextjs-app`
 - `phase-2/build-source-table`
 - `fix/snapshot-path-bug`
 - `fix/api-endpoint-error`
 
 **Commit prefixes:** `prefix: short description`  
-The prefix is the first segment of the branch name—the part before the first `/` (e.g., `phase-1`, `fix`).
+The prefix matches the branch prefix (first segment before the slash). Commit descriptions should summarize the change — they don't need to mirror the branch name verbatim.
 - `phase-1: init next.js app with typescript`
 - `phase-2: add source table component`
 - `fix: correct snapshot file path`
@@ -70,26 +70,28 @@ The prefix is the first segment of the branch name—the part before the first `
 4. Create PR → main
 5. Wait for review before merge
 
-**Reviews:** Reviews are performed by Brittaney or other team members. The `pr-review-ollama` tool provides automated feedback on PRs (requires initial setup).
+**Reviews:** PRs are reviewed by designated reviewer(s). The `pr-review-ollama` tool provides automated feedback on PRs (requires initial setup).
 
-**Merge strategy:** PRs are merged using squash. Use the PR title as the squash commit message (follows the same prefix convention).
+**Merge strategy:** PRs are merged using squash. Use the PR title as the squash commit message (prefix + description). The PR number is automatically appended by GitHub.
 
 **Examples:**
 
 Single task:
 ```
-branch:  phase-1/init-nextjs-app
-commit:  phase-1: init next.js app with typescript
-pr:      phase-1: init next.js app with typescript (#42)
+branch:   phase-1/init-nextjs-app
+commit:   phase-1: init next.js app with typescript
+pr title: phase-1: init next.js app with typescript
+squash:   phase-1: init next.js app with typescript (#42)
 ```
 
 Related batch:
 ```
-branch:  phase-1/add-tailwind-shadcn-ui-prisma
-commit:  phase-1: add tailwind css
-commit:  phase-1: add shadcn/ui component library
-commit:  phase-1: install prisma and configure sqlite
-pr:      phase-1: add tailwind, shadcn/ui, and prisma (#51)
+branch:   phase-1/add-tailwind-shadcn-ui-prisma
+commit:   phase-1: add tailwind css
+commit:   phase-1: add shadcn/ui component library
+commit:   phase-1: install prisma and configure sqlite
+pr title: phase-1: add tailwind, shadcn/ui, and prisma
+squash:   phase-1: add tailwind, shadcn/ui, and prisma (#51)
 ```
 
 ## Packet docs
