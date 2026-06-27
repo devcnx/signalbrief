@@ -41,3 +41,5 @@ data/ai-newsletter.sqlite-journal
 data/snapshots/
 data/exports/
 data/logs/
+
+/src/generated/prisma
