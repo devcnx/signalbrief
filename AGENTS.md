@@ -75,6 +75,13 @@ The prefix matches the branch prefix (first segment before the slash). Commit de
 
 **Reviews:** PRs are reviewed by designated reviewer(s). The `pr-review-ollama` tool provides automated feedback on PRs — see `2026/Tooling/pr-review-ollama/README.md` for setup.
 
+**Automated review flow (when pr-review-ollama is running):**
+1. After creating a PR, wait ~60–90 seconds for pr-review-ollama to trigger
+2. Check PR comments for review feedback
+3. If there are actionable changes, present them and get explicit approval before applying
+4. Repeat until review is clean, then merge
+5. If pr-review-ollama is not running (webhook down, tunnel offline, etc.), proceed with normal manual review flow
+
 **Merge strategy:** PRs are merged using squash. The PR title must follow the same `prefix: description` format as commits. The PR number is automatically appended by GitHub.
 
 **Examples:**
