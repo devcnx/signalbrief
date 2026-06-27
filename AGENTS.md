@@ -48,17 +48,20 @@ npm run dev
 
 **Never push directly to main.** All work goes through branches and PRs.
 
-**Naming convention:** lowercase, hyphen-separated (unless it's an acronym like PR, API, SQL).
+**Naming convention:** lowercase, hyphen-separated. Acronyms (e.g., `PR`, `API`, `SQL`) may be uppercase, but all other words must be lowercase.
 
 **Branch naming:** `prefix/task-description`
 - `phase-1/init-nextjs-app`
 - `phase-2/build-source-table`
 - `fix/snapshot-path-bug`
+- `fix/API-endpoint-error`
 
 **Commit messages:** `prefix: short description`
+Commit prefixes should correspond to the branch's task prefix.
 - `phase-1: init next.js app with typescript`
 - `phase-2: add source table component`
 - `fix: correct snapshot file path`
+- `fix: update API endpoint error handling`
 
 **PR workflow:**
 1. Create branch from main
@@ -67,7 +70,7 @@ npm run dev
 4. Create PR → main
 5. Wait for review before merge
 
-**Reviews:** Brittaney reviews manually, or `pr-review-ollama` (requires setup for this repo first).
+**Reviews:** Reviews are performed by Brittaney or via the `pr-review-ollama` tool (initial setup required for this repository).
 
 **Examples:**
 
@@ -75,16 +78,16 @@ Single task:
 ```
 branch:  phase-1/init-nextjs-app
 commit:  phase-1: init next.js app with typescript
-pr:      phase-1: init next.js app with typescript (#issue)
+pr:      phase-1: init next.js app with typescript (#42)
 ```
 
 Related batch:
 ```
-branch:  phase-1/add-tailwind-shadcn-prisma
+branch:  phase-1/add-tailwind-shadcn-ui-prisma
 commit:  phase-1: add tailwind css
 commit:  phase-1: add shadcn/ui component library
 commit:  phase-1: install prisma and configure sqlite
-pr:      phase-1: add tailwind, shadcn/ui, and prisma
+pr:      phase-1: add tailwind, shadcn/ui, and prisma (#51)
 ```
 
 ## Packet docs
