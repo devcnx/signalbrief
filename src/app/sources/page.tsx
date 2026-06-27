@@ -8,9 +8,15 @@ export default async function SourcesPage() {
     orderBy: { createdAt: "desc" },
   })
 
+  const serialized = sources.map((s) => ({
+    ...s,
+    createdAt: s.createdAt.toISOString(),
+    updatedAt: s.updatedAt.toISOString(),
+  }))
+
   return (
     <div className="flex-1 p-8">
-      <SourcesTable sources={sources} />
+      <SourcesTable sources={serialized} />
     </div>
   )
 }

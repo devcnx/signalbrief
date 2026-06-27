@@ -87,6 +87,7 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Source | null>(null)
 
   const resetForm = useCallback(() => {
     setForm(defaultForm)
@@ -138,6 +139,7 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
   }
 
   async function handleToggle(source: Source) {
+    setErrorMessage(null)
     const res = await fetch(`/api/sources/${source.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -147,19 +149,22 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
       const updated = await res.json()
       setSources((prev) => prev.map((s) => (s.id === source.id ? updated : s)))
       router.refresh()
+    } else {
+      setErrorMessage("Failed to toggle source status")
     }
   }
 
   async function handleDelete(source: Source) {
-    if (!confirm(`Deactivate "${source.name}"?`)) return
+    setErrorMessage(null)
     const res = await fetch(`/api/sources/${source.id}`, {
       method: "DELETE",
     })
     if (res.ok) {
-      setSources((prev) =>
-        prev.map((s) => (s.id === source.id ? { ...s, active: false } : s))
-      )
+      const updated = await res.json()
+      setSources((prev) => prev.map((s) => (s.id === source.id ? updated : s)))
       router.refresh()
+    } else {
+      setErrorMessage("Failed to deactivate source")
     }
   }
 
@@ -183,11 +188,9 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Sources</h1>
         <Dialog open={addOpen} onOpenChange={(open) => { setAddOpen(open); if (!open) resetForm() }}>
-          <DialogTrigger asChild>
-            <Button onClick={handleAddClick} disabled={saving}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Source
-            </Button>
+          <DialogTrigger render={<Button />}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Source
           </DialogTrigger>
           <DialogContent>
             <form onSubmit={(e) => { e.preventDefault(); handleAddClick() }} className="space-y-4">
@@ -261,7 +264,7 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
                       <Button variant="ghost" size="icon" onClick={() => openEdit(source)} disabled={saving}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(source)} disabled={saving}>
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(source)} disabled={saving}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -290,6 +293,36 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteTarget !== null} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deactivate Source</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to deactivate "{deleteTarget?.name}"? This will set it to inactive but preserve its history.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={saving}
+              onClick={async () => {
+                if (deleteTarget) {
+                  setSaving(true)
+                  await handleDelete(deleteTarget)
+                  setSaving(false)
+                  setDeleteTarget(null)
+                }
+              }}
+            >
+              {saving ? "Deactivating..." : "Deactivate"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

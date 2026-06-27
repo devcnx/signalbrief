@@ -4,9 +4,9 @@ import { validateSourceInput } from "@/lib/validators"
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params
+  const { id } = await params
 
   const existing = await prisma.source.findUnique({ where: { id } })
   if (!existing) {
@@ -15,7 +15,12 @@ export async function PATCH(
 
   const body = await request.json()
 
-  if (Object.keys(body).some((key) => ["url", "name", "provider", "type", "category", "priority"].includes(key))) {
+  const fieldsToValidate = ["url", "name", "provider", "type", "category", "priority"]
+  const hasFieldsToValidate = fieldsToValidate.some((field) =>
+    Object.prototype.hasOwnProperty.call(body, field)
+  )
+
+  if (hasFieldsToValidate) {
     const errors = validateSourceInput({
       ...existing,
       ...body,
@@ -44,9 +49,9 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params
+  const { id } = await params
 
   const existing = await prisma.source.findUnique({ where: { id } })
   if (!existing) {
