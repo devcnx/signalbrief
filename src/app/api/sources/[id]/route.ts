@@ -15,7 +15,12 @@ export async function PATCH(
 
   const body = await request.json()
 
-  if (body.url || body.name || body.provider || body.type || body.category || body.priority) {
+  const fieldsToValidate = ["url", "name", "provider", "type", "category", "priority"]
+  const hasFieldsToValidate = fieldsToValidate.some((field) =>
+    Object.prototype.hasOwnProperty.call(body, field)
+  )
+
+  if (hasFieldsToValidate) {
     const errors = validateSourceInput({
       ...existing,
       ...body,
@@ -53,10 +58,13 @@ export async function DELETE(
     return NextResponse.json({ error: "Source not found" }, { status: 404 })
   }
 
-  await prisma.source.update({
-    where: { id },
-    data: { active: false },
-  })
-
-  return NextResponse.json({ success: true })
+  try {
+    const source = await prisma.source.update({
+      where: { id },
+      data: { active: false },
+    })
+    return NextResponse.json(source)
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to deactivate source" }, { status: 500 })
+  }
 }
