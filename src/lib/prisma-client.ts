@@ -1,6 +1,6 @@
 import "dotenv/config";
 import path from "path";
-import { PrismaClient } from "../src/generated/prisma/client";
+import { PrismaClient } from "../generated/prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 
 export function createPrismaClient(): PrismaClient {
