@@ -48,16 +48,16 @@ npm run dev
 
 **Never push directly to main.** All work goes through branches and PRs.
 
-**Naming convention:** lowercase, hyphen-separated. In *branch names*, all words (including acronyms) must be lowercase. In *commit prefixes and PR titles*, only these acronyms may be uppercase: `PR`, `API`, `SQL`, `UI`, `URL`, `HTML`, `CSS`.
+**Naming convention:** lowercase, hyphen-separated. In *branch names*, all words (including acronyms) must be lowercase. In *commit prefixes and PR titles*, only these acronyms may be uppercase: `PR`, `API`, `SQL`, `UI`, `URL`, `HTML`, `CSS`. Proper nouns (e.g., `next.js`, `typescript`) must remain lowercase unless they are one of the allowed acronyms.
 
-**Branch naming:** `prefix/description` — exactly one slash
+**Branch naming:** `prefix/description` — exactly one slash. Use only lowercase letters, digits, and hyphens (no dots or special characters).
 - `phase-1/init-nextjs-app`
 - `phase-2/build-source-table`
 - `fix/snapshot-path-bug`
 - `fix/api-endpoint-error`
 
 **Commit prefixes:** `prefix: short description`  
-The prefix matches the branch prefix (first segment before the slash). Commit descriptions should summarize the change — they don't need to mirror the branch name verbatim. Note: branch descriptions may be more specific than PR titles.
+The prefix matches the branch prefix (first segment before the slash). Commit descriptions should summarize the change — they don't need to mirror the branch name verbatim. The description in the branch name (after the slash) can be more specific than the PR title.
 - `phase-1: init next.js app with typescript`
 - `phase-2: add source table component`
 - `fix: correct snapshot file path`
@@ -65,14 +65,15 @@ The prefix matches the branch prefix (first segment before the slash). Commit de
 
 **PR workflow:**
 1. Create branch from main
-2. Commit changes (atomic, prefixed commits)
+2. Commit changes (atomic, prefixed commits) — each commit should represent a single logical change
 3. Push branch
 4. Create PR → main
 5. Wait for review before merge
+6. After merging, delete the feature branch
 
-**Reviews:** PRs are reviewed by designated reviewer(s). The `pr-review-ollama` tool provides automated feedback on PRs (requires initial setup).
+**Reviews:** PRs are reviewed by designated reviewer(s). The `pr-review-ollama` tool provides automated feedback on PRs — see `2026/Tooling/pr-review-ollama/README.md` for setup.
 
-**Merge strategy:** PRs are merged using squash. Use the PR title as the squash commit message (prefix + description). The PR number is automatically appended by GitHub.
+**Merge strategy:** PRs are merged using squash. The PR title must follow the same `prefix: description` format as commits. The PR number is automatically appended by GitHub.
 
 **Examples:**
 
