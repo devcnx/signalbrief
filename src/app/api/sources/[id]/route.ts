@@ -4,9 +4,9 @@ import { validateSourceInput } from "@/lib/validators"
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params
+  const { id } = params
 
   const existing = await prisma.source.findUnique({ where: { id } })
   if (!existing) {
@@ -44,9 +44,9 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params
+  const { id } = params
 
   const existing = await prisma.source.findUnique({ where: { id } })
   if (!existing) {

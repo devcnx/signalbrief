@@ -47,7 +47,8 @@ type Source = {
   priority: string
   active: boolean
   notes: string | null
-  createdAt: Date
+  createdAt: string
+  updatedAt: string
 }
 
 type SourceFormData = {
@@ -91,8 +92,8 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
     setErrors({})
   }, [])
 
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleAddClick(e?: React.MouseEvent) {
+    e?.stopPropagation()
     setSaving(true)
     const res = await fetch("/api/sources", {
       method: "POST",
@@ -113,8 +114,8 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
     router.refresh()
   }
 
-  async function handleEdit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleEditClick(e?: React.MouseEvent) {
+    e?.stopPropagation()
     if (!editingId) return
     setSaving(true)
     const res = await fetch(`/api/sources/${editingId}`, {
@@ -183,24 +184,28 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Sources</h1>
         <Dialog open={addOpen} onOpenChange={(open) => { setAddOpen(open); if (!open) resetForm() }}>
-          <DialogTrigger render={<Button />}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Source
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Source
+            </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Source</DialogTitle>
-              <DialogDescription>Add a new AI update source to monitor.</DialogDescription>
-            </DialogHeader>
-            <SourceFormFields form={form} setForm={setForm} errors={errors} />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => { setAddOpen(false); resetForm() }}>
-                Cancel
-              </Button>
-              <Button onClick={handleAdd} disabled={saving}>
-                {saving ? "Saving..." : "Add Source"}
-              </Button>
-            </DialogFooter>
+            <form onSubmit={(e) => { e.preventDefault(); handleAddClick() }} className="space-y-4">
+              <DialogHeader>
+                <DialogTitle>Add Source</DialogTitle>
+                <DialogDescription>Add a new AI update source to monitor.</DialogDescription>
+              </DialogHeader>
+              <SourceFormFields form={form} setForm={setForm} errors={errors} />
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => { setAddOpen(false); resetForm() }}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={saving}>
+                  {saving ? "Saving..." : "Add Source"}
+                </Button>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
@@ -271,19 +276,21 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
 
       <Dialog open={editOpen} onOpenChange={(open) => { setEditOpen(open); if (!open) { resetForm(); setEditingId(null) }}}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Source</DialogTitle>
-            <DialogDescription>Update the source details.</DialogDescription>
-          </DialogHeader>
-          <SourceFormFields form={form} setForm={setForm} errors={errors} />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setEditOpen(false); resetForm(); setEditingId(null) }}>
-              Cancel
-            </Button>
-            <Button onClick={handleEdit} disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogFooter>
+          <form onSubmit={(e) => { e.preventDefault(); handleEditClick() }} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle>Edit Source</DialogTitle>
+              <DialogDescription>Update the source details.</DialogDescription>
+            </DialogHeader>
+            <SourceFormFields form={form} setForm={setForm} errors={errors} />
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => { setEditOpen(false); resetForm(); setEditingId(null) }}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
