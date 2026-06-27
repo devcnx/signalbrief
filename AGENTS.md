@@ -48,7 +48,7 @@ npm run dev
 
 **Never push directly to main.** All work goes through branches and PRs.
 
-**Naming convention:** lowercase, hyphen-separated. In *branch names*, all words (including acronyms) must be lowercase. In *commit prefixes and PR titles*, only `PR`, `API`, and `SQL` may be uppercase.
+**Naming convention:** lowercase, hyphen-separated. In *branch names*, all words (including acronyms) must be lowercase. In *commit prefixes and PR titles*, only these acronyms may be uppercase: `PR`, `API`, `SQL`, `UI`, `URL`, `HTML`, `CSS`.
 
 **Branch naming:** `prefix/description` — exactly one slash
 - `phase-1/init-nextjs-app`
