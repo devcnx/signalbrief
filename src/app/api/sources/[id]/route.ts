@@ -15,12 +15,7 @@ export async function PATCH(
 
   const body = await request.json()
 
-  const fieldsToValidate = ["url", "name", "provider", "type", "category", "priority"]
-  const hasFieldsToValidate = fieldsToValidate.some((field) =>
-    Object.prototype.hasOwnProperty.call(body, field)
-  )
-
-  if (hasFieldsToValidate) {
+  if (Object.keys(body).some((key) => ["url", "name", "provider", "type", "category", "priority"].includes(key))) {
     const errors = validateSourceInput({
       ...existing,
       ...body,
@@ -64,7 +59,7 @@ export async function DELETE(
       data: { active: false },
     })
     return NextResponse.json(source)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to deactivate source" }, { status: 500 })
   }
 }

@@ -86,14 +86,14 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
   const [form, setForm] = useState<SourceFormData>(defaultForm)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const resetForm = useCallback(() => {
     setForm(defaultForm)
     setErrors({})
   }, [])
 
-  async function handleAddClick(e?: React.MouseEvent) {
-    e?.stopPropagation()
+  async function handleAddClick() {
     setSaving(true)
     const res = await fetch("/api/sources", {
       method: "POST",
@@ -114,8 +114,7 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
     router.refresh()
   }
 
-  async function handleEditClick(e?: React.MouseEvent) {
-    e?.stopPropagation()
+  async function handleEditClick() {
     if (!editingId) return
     setSaving(true)
     const res = await fetch(`/api/sources/${editingId}`, {
@@ -185,7 +184,7 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
         <h1 className="text-3xl font-bold">Sources</h1>
         <Dialog open={addOpen} onOpenChange={(open) => { setAddOpen(open); if (!open) resetForm() }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button onClick={handleAddClick} disabled={saving}>
               <Plus className="h-4 w-4 mr-2" />
               Add Source
             </Button>
@@ -259,10 +258,10 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(source)}>
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(source)} disabled={saving}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(source)}>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(source)} disabled={saving}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -293,6 +292,12 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
           </form>
         </DialogContent>
       </Dialog>
+
+      {errorMessage && (
+        <div className="mt-4 p-3 rounded-lg border border-destructive/20 bg-destructive/10 text-destructive text-sm">
+          {errorMessage}
+        </div>
+      )}
     </div>
   )
 }

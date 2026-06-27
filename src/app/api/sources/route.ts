@@ -5,6 +5,8 @@ import { validateSourceInput } from "@/lib/validators"
 export async function GET() {
   const sources = await prisma.source.findMany({
     orderBy: { createdAt: "desc" },
+    take: 50,
+    skip: 0,
   })
   return NextResponse.json(sources)
 }
