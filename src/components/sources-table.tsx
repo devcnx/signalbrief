@@ -315,13 +315,13 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => handleTestFetch(source)} disabled={testingId === source.id}>
+                      <Button variant="ghost" size="icon" onClick={() => handleTestFetch(source)} disabled={testingId === source.id} aria-label={`Test fetch ${source.name}`}>
                         <Zap className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(source)} disabled={saving}>
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(source)} disabled={saving} aria-label={`Edit ${source.name}`}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(source)} disabled={saving}>
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(source)} disabled={saving} aria-label={`Deactivate ${source.name}`}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

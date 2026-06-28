@@ -53,8 +53,9 @@ export function cleanHtml(rawHtml: string): CleanResult {
       $("body").text().trim()
 
     const cleanedText = mainContent
-      .replace(/\s+/g, " ")
-      .replace(/\n\s*\n/g, "\n\n")
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n[ \t]+/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
       .trim()
 
     return {

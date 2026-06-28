@@ -7,23 +7,27 @@ export async function GET(
 ) {
   const { id } = await params
 
-  const run = await prisma.run.findUnique({
-    where: { id },
-    include: {
-      snapshots: {
-        include: {
-          source: {
-            select: { id: true, name: true, provider: true, url: true },
+  try {
+    const run = await prisma.run.findUnique({
+      where: { id },
+      include: {
+        snapshots: {
+          include: {
+            source: {
+              select: { id: true, name: true, provider: true, url: true },
+            },
           },
+          orderBy: { fetchedAt: "desc" },
         },
-        orderBy: { fetchedAt: "desc" },
       },
-    },
-  })
+    })
 
-  if (!run) {
-    return NextResponse.json({ error: "Run not found" }, { status: 404 })
+    if (!run) {
+      return NextResponse.json({ error: "Run not found" }, { status: 404 })
+    }
+
+    return NextResponse.json(run)
+  } catch {
+    return NextResponse.json({ error: "Failed to fetch run" }, { status: 500 })
   }
-
-  return NextResponse.json(run)
 }
