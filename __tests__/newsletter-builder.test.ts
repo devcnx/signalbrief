@@ -195,3 +195,56 @@ describe("buildHtml", () => {
     expect(html).toContain("</html>")
   })
 })
+
+describe("buildMarkdown metadata", () => {
+  const baseItem = {
+    provider: "OpenAI",
+    sourceName: "Changelog",
+    sourceUrl: "https://openai.com/changelog",
+    summary: "Added GPT-5 model",
+    impactLevel: "high",
+    approved: true,
+  }
+
+  it("includes title as h1", () => {
+    const md = buildMarkdown("My Newsletter", [baseItem])
+    expect(md).toContain("# My Newsletter")
+  })
+
+  it("includes generated date", () => {
+    const md = buildMarkdown("Test", [baseItem])
+    expect(md).toContain("Generated:")
+  })
+
+  it("includes provider and source name in h3", () => {
+    const md = buildMarkdown("Test", [baseItem])
+    expect(md).toContain("### OpenAI — Changelog")
+  })
+
+  it("includes source URL as link", () => {
+    const md = buildMarkdown("Test", [baseItem])
+    expect(md).toContain("[Source](https://openai.com/changelog)")
+  })
+
+  it("uses plain text source when URL is null", () => {
+    const item = { ...baseItem, sourceUrl: null }
+    const md = buildMarkdown("Test", [item])
+    expect(md).toContain("Source: Changelog")
+    expect(md).not.toContain("[Source](")
+  })
+
+  it("escapes special characters in summary", () => {
+    const item = { ...baseItem, summary: "Use *bold* and # headers carefully" }
+    const md = buildMarkdown("Test", [item])
+    expect(md).toContain("\\*bold\\*")
+    expect(md).toContain("\\# headers")
+  })
+
+  it("renders HTML from markdown", () => {
+    const md = buildMarkdown("Test", [baseItem])
+    const html = buildHtml(md)
+    expect(html).toContain("<h1>Test</h1>")
+    expect(html).toContain("OpenAI")
+    expect(html).toContain("Changelog")
+  })
+})

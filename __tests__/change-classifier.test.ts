@@ -34,6 +34,22 @@ describe("classifyChange", () => {
     it("detects high impact in removals", () => {
       expect(classifyChange("", "Removed deprecated API endpoint")).toBe("high")
     })
+
+    it("classifies valid CVE identifiers as high", () => {
+      expect(classifyChange("Fixed CVE-2025-1234 vulnerability", "")).toBe("high")
+    })
+
+    it("does not classify invalid CVE patterns as high", () => {
+      expect(classifyChange("Related to CVE-5 issue", "")).not.toBe("high")
+    })
+
+    it("does not classify 'insecurity' as security issue", () => {
+      expect(classifyChange("insecurity fix for typo", "")).not.toBe("high")
+    })
+
+    it("classifies 'security' as high impact", () => {
+      expect(classifyChange("security fix for auth bypass", "")).toBe("high")
+    })
   })
 
   describe("medium impact", () => {
