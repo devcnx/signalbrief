@@ -3,7 +3,9 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { fetchSource, generateContentHash } from "@/lib/source-fetcher"
 import { cleanHtml } from "@/lib/content-cleaner"
-import { saveSnapshot } from "@/lib/snapshot-storage"
+import { saveSnapshot, readSnapshotFile } from "@/lib/snapshot-storage"
+import { computeDiff } from "@/lib/diff-engine"
+import { classifyChange } from "@/lib/change-classifier"
 
 export async function POST() {
   const run = await prisma.run.create({
@@ -18,6 +20,7 @@ export async function POST() {
 
   let sourcesChecked = 0
   let errorsCount = 0
+  let changesFound = 0
 
   for (const source of activeSources) {
     sourcesChecked++
@@ -95,6 +98,53 @@ export async function POST() {
     } catch (error) {
       console.error(`DB write failed for snapshot ${snapshotId}:`, error)
       errorsCount++
+      continue
+    }
+
+    const priorSnapshot = await prisma.snapshot.findFirst({
+      where: {
+        sourceId: source.id,
+        status: "success",
+        runId: { not: run.id },
+        contentHash: { not: null },
+      },
+      orderBy: { fetchedAt: "desc" },
+    })
+
+    if (priorSnapshot && contentHash === priorSnapshot.contentHash) continue
+
+    if (priorSnapshot && priorSnapshot.cleanedContentPath) {
+      try {
+        const priorText = await readSnapshotFile(priorSnapshot.cleanedContentPath)
+        const diff = computeDiff(priorText, cleanResult.cleanedText)
+
+        if (diff.hasChanges) {
+          const changeType = priorText.length === 0 ? "new" : "updated"
+          const significance = classifyChange(diff.additions)
+
+          const changedText = [
+            diff.removals ? `--- removed\n${diff.removals}\n` : "",
+            diff.additions ? `+++ added\n${diff.additions}` : "",
+          ]
+            .filter(Boolean)
+            .join("\n")
+
+          await prisma.detectedChange.create({
+            data: {
+              sourceId: source.id,
+              runId: run.id,
+              snapshotId,
+              changeType,
+              significance,
+              changedText,
+            },
+          })
+
+          changesFound++
+        }
+      } catch {
+        console.error(`Diff failed for source ${source.id}`)
+      }
     }
   }
 
@@ -107,6 +157,7 @@ export async function POST() {
       completedAt: new Date(),
       sourcesChecked,
       errorsCount,
+      changesFound,
     },
   })
 
