@@ -2,7 +2,6 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import { prisma } from "@/lib/db"
 
 let newsletterId: string
-let itemIds: string[]
 
 beforeAll(async () => {
   const source = await prisma.source.create({
@@ -69,7 +68,6 @@ beforeAll(async () => {
   })
 
   newsletterId = newsletter.id
-  itemIds = newsletter.items.map((i) => i.id)
 })
 
 afterAll(async () => {

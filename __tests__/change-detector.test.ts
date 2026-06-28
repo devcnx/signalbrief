@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest"
 import fs from "fs/promises"
 import path from "path"
-import { computeSnapshotDiff, SnapshotDiff } from "@/lib/change-detector"
+import { computeSnapshotDiff } from "@/lib/change-detector"
 
 const TEST_DIR = path.join(process.cwd(), "data", "snapshots", "__test_detector__")
 const PRIOR_PATH = path.join(TEST_DIR, "prior.txt")
