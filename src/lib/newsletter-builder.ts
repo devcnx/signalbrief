@@ -60,7 +60,7 @@ function buildMarkdown(
     for (const item of section.items) {
       lines.push(`### ${escapeMarkdown(item.provider)} — ${escapeMarkdown(item.sourceName)}`)
       lines.push("")
-      lines.push(item.summary)
+      lines.push(escapeMarkdown(item.summary))
       lines.push("")
       lines.push(`[Source](${item.sourceUrl})`)
       lines.push("")
