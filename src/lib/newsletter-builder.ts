@@ -129,7 +129,7 @@ export async function buildNewsletter(runId: string) {
     include: {
       changes: {
         include: {
-          source: { select: { name: true, provider: true } },
+          source: { select: { name: true, provider: true, url: true } },
         },
         where: { significance: { not: "noise" } },
       },
@@ -156,7 +156,7 @@ export async function buildNewsletter(runId: string) {
     impactLevel: SIGNIFICANCE_TO_IMPACT[change.significance as Significance] || "low",
     summary: change.changedText,
     whyItMatters: "Detected change requires review.",
-    sourceUrl: `https://signalbrief.local/change/${change.id}`,
+    sourceUrl: change.source.url,
     confidence: "low" as const,
     approved: false,
   }))
