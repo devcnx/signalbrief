@@ -9,7 +9,7 @@ const SIGNIFICANCE_TO_IMPACT: Record<Significance, string> = {
 }
 
 function escapeMarkdown(text: string): string {
-  return text.replace(/([*_`#\[！])/g, "\\$1")
+  return text.replace(/([*_`#\[\]])/g, "\\$1")
 }
 
 function truncate(text: string, maxLength: number): string {
