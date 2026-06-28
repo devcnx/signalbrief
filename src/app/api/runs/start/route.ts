@@ -114,13 +114,35 @@ export async function POST() {
     if (priorSnapshot && contentHash === priorSnapshot.contentHash) continue
 
     if (priorSnapshot && priorSnapshot.cleanedContentPath) {
+      let priorText: string | null = null
+
       try {
-        const priorText = await readSnapshotFile(priorSnapshot.cleanedContentPath)
+        priorText = await readSnapshotFile(priorSnapshot.cleanedContentPath)
+      } catch {
+        console.error(`Prior snapshot file missing for source ${source.id}, treating as new content`)
+      }
+
+      if (priorText === null) {
+        const changedText = "+++ added\n" + cleanResult.cleanedText.split("\n").map((l) => `+ ${l}`).join("\n")
+
+        await prisma.detectedChange.create({
+          data: {
+            sourceId: source.id,
+            runId: run.id,
+            snapshotId,
+            changeType: "new",
+            significance: classifyChange(cleanResult.cleanedText, ""),
+            changedText,
+          },
+        })
+
+        changesFound++
+      } else {
         const diff = computeDiff(priorText, cleanResult.cleanedText)
 
         if (diff.hasChanges) {
           const changeType = priorText.length === 0 ? "new" : "updated"
-          const significance = classifyChange(diff.additions)
+          const significance = classifyChange(diff.additions, diff.removals)
 
           const changedText = [
             diff.removals ? "--- removed\n" + diff.removals.split("\n").map((l) => `- ${l}`).join("\n") + "\n" : "",
@@ -142,8 +164,6 @@ export async function POST() {
 
           changesFound++
         }
-      } catch {
-        console.error(`Diff failed for source ${source.id}`)
       }
     }
   }

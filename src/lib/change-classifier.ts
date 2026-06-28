@@ -43,9 +43,7 @@ function testPatterns(text: string, patterns: RegExp[]): boolean {
   return patterns.some((p) => p.test(text))
 }
 
-export function classifyChange(diffText: string): Significance {
-  const additions = diffText.slice(0, 500)
-  const removals = diffText.split("--- removed\n")[1]?.split("+++")[0]?.slice(0, 500) || ""
+export function classifyChange(additions: string, removals: string): Significance {
   const combined = additions + "\n" + removals
 
   const checks: [RegExp[], Significance][] = [
@@ -62,7 +60,7 @@ export function classifyChange(diffText: string): Significance {
     if (pattern.test(combined)) return "noise"
   }
 
-  if (diffText.length > 200) return "medium"
+  if (combined.length > 200) return "medium"
 
   return "low"
 }
