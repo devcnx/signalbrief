@@ -5,9 +5,9 @@ const HIGH_IMPACT_PATTERNS = [
   /(deprecat|sunset|end[\s-]of[\s-]life)/i,
   /(breaking|backward[\s-]incompatib)/i,
   /(securit|vulnerability|exploit|patch|CVE-\d)/i,
-  /(pric|pricing|limit|rate[\s-]limit|quota)/i,
-  /(complianc|regulat|gdpr|hipaa|soc2|privacy)/i,
-  /(enterprise|enterprise[\s-]feature)/i,
+  /(pricing|price[\s-]change|rate[\s-]limit\s+(change|increas|decreas|remov)|quota\s+(change|increas|decreas))/i,
+  /(complianc|regulat|gdpr|hipaa|soc2)/i,
+  /(enterprise[\s-]feature|enterprise[\s-]tier)/i,
 ]
 
 const MEDIUM_IMPACT_PATTERNS = [
