@@ -89,7 +89,6 @@ function buildHtml(markdown: string): string {
   htmlLines.push("</head>")
   htmlLines.push("<body>")
 
-  let inList = false
   for (const line of lines) {
     if (line.startsWith("# ")) {
       htmlLines.push(`<h1>${escapeHtml(line.slice(2))}</h1>`)

@@ -31,12 +31,6 @@ type Newsletter = {
   items: NewsletterItem[]
 }
 
-const impactColors: Record<string, string> = {
-  high: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  low: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-}
-
 const confidenceColors: Record<string, string> = {
   high: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
   medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
@@ -164,7 +158,7 @@ export default function NewsletterDraftPage({
                     <span className="font-medium">{item.provider}</span>
                     <span className="text-muted-foreground">—</span>
                     <span className="text-sm text-muted-foreground">{item.category}</span>
-                    <Badge className={impactColors[item.impactLevel] || ""}>
+                    <Badge className={significanceColor(item.impactLevel)}>
                       {item.impactLevel}
                     </Badge>
                     <Badge className={confidenceColors[item.confidence] || ""}>
