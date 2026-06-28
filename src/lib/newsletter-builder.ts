@@ -179,7 +179,7 @@ export async function buildNewsletter(runId: string) {
     summary: change.changedText,
     whyItMatters: getWhyItMatters(change.significance, change.changeType),
     sourceUrl: change.source.url,
-    confidence: "low" as const,
+    confidence: (change.significance === "high" || change.significance === "medium") ? "high" : "low" as const,
     approved: false,
   }))
 
