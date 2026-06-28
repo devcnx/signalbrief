@@ -74,4 +74,27 @@ describe("computeSnapshotDiff", () => {
     expect(result!.changedText).toContain("- removed line")
     expect(result!.changedText).toContain("+ added line")
   })
+
+  it("does not produce prefixed empty lines in removals", async () => {
+    await writePrior("line one\n\nline three")
+    const result = await computeSnapshotDiff(PRIOR_PATH, "line one\nline three")
+    expect(result).not.toBeNull()
+    expect(result!.changedText).not.toMatch(/- $/)
+    expect(result!.changedText).not.toMatch(/- \n/)
+  })
+
+  it("does not produce prefixed empty lines in additions", async () => {
+    await writePrior("line one\nline three")
+    const result = await computeSnapshotDiff(PRIOR_PATH, "line one\n\nline three")
+    expect(result).not.toBeNull()
+    expect(result!.changedText).not.toMatch(/\+ $/)
+    expect(result!.changedText).not.toMatch(/\+ \n/)
+  })
+
+  it("filters whitespace-only lines from diff output", async () => {
+    await writePrior("line one\n   \nline three")
+    const result = await computeSnapshotDiff(PRIOR_PATH, "line one\nline three")
+    expect(result).not.toBeNull()
+    expect(result!.changedText).not.toMatch(/- \s+\n/)
+  })
 })

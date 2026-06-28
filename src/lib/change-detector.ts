@@ -47,9 +47,16 @@ export async function computeSnapshotDiff(
   const changeType = priorText.length === 0 ? "new" : "updated"
   const significance = classifyChange(diff.additions, diff.removals)
 
+  const formatDiff = (text: string, prefix: string) =>
+    text
+      .split("\n")
+      .filter((line) => line.trim().length > 0)
+      .map((line) => `${prefix} ${line}`)
+      .join("\n")
+
   const changedText = [
-    diff.removals ? "--- removed\n" + diff.removals.split("\n").map((l) => `- ${l}`).join("\n") + "\n" : "",
-    diff.additions ? "+++ added\n" + diff.additions.split("\n").map((l) => `+ ${l}`).join("\n") : "",
+    diff.removals ? "--- removed\n" + formatDiff(diff.removals, "-") : "",
+    diff.additions ? "+++ added\n" + formatDiff(diff.additions, "+") : "",
   ]
     .filter(Boolean)
     .join("\n")
