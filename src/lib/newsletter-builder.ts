@@ -1,5 +1,6 @@
 import { prisma } from "./db"
 import { marked } from "marked"
+import sanitizeHtml from "sanitize-html"
 import type { Significance } from "./types"
 
 const SIGNIFICANCE_TO_IMPACT: Record<Significance, string> = {
@@ -93,8 +94,15 @@ export function buildMarkdown(
   return lines.join("\n")
 }
 
-function buildHtml(markdown: string): string {
-  const body = marked.parse(markdown) as string
+export function buildHtml(markdown: string): string {
+  const rawHtml = marked.parse(markdown) as string
+  const body = sanitizeHtml(rawHtml, {
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat(["h1", "h2", "h3"]),
+    allowedAttributes: {
+      ...sanitizeHtml.defaults.allowedAttributes,
+      a: ["href", "title", "target", "rel"],
+    },
+  })
   return `<!DOCTYPE html>
 <html lang="en">
 <head>

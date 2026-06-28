@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { escapeMarkdown, buildMarkdown, getWhyItMatters, truncate } from "@/lib/newsletter-builder"
+import { escapeMarkdown, buildMarkdown, buildHtml, getWhyItMatters, truncate } from "@/lib/newsletter-builder"
 
 describe("escapeMarkdown", () => {
   it("escapes heading markers", () => {
@@ -120,5 +120,78 @@ describe("truncate", () => {
 
   it("truncates long text with ellipsis", () => {
     expect(truncate("a".repeat(100), 50)).toBe("a".repeat(47) + "...")
+  })
+})
+
+describe("buildHtml", () => {
+  it("renders h1 headings", () => {
+    const html = buildHtml("# Title")
+    expect(html).toContain("<h1>Title</h1>")
+  })
+
+  it("renders h2 headings", () => {
+    const html = buildHtml("## Section")
+    expect(html).toContain("<h2>Section</h2>")
+  })
+
+  it("renders h3 headings", () => {
+    const html = buildHtml("### Subsection")
+    expect(html).toContain("<h3>Subsection</h3>")
+  })
+
+  it("renders links with href", () => {
+    const html = buildHtml("[OpenAI](https://openai.com)")
+    expect(html).toContain('<a href="https://openai.com">OpenAI</a>')
+  })
+
+  it("renders bold text", () => {
+    const html = buildHtml("**important**")
+    expect(html).toContain("<strong>important</strong>")
+  })
+
+  it("renders italic text", () => {
+    const html = buildHtml("*emphasis*")
+    expect(html).toContain("<em>emphasis</em>")
+  })
+
+  it("renders unordered lists", () => {
+    const md = "- Item one\n- Item two"
+    const html = buildHtml(md)
+    expect(html).toContain("<ul>")
+    expect(html).toContain("<li>Item one</li>")
+    expect(html).toContain("<li>Item two</li>")
+  })
+
+  it("renders code blocks", () => {
+    const md = "```\nconst x = 1\n```"
+    const html = buildHtml(md)
+    expect(html).toContain("<code>")
+    expect(html).toContain("const x = 1")
+  })
+
+  it("renders inline code", () => {
+    const html = buildHtml("Use `npm install`")
+    expect(html).toContain("<code>npm install</code>")
+  })
+
+  it("sanitizes raw HTML from input", () => {
+    const html = buildHtml("<script>alert('xss')</script>")
+    expect(html).not.toContain("<script>")
+    expect(html).not.toContain("alert")
+  })
+
+  it("sanitizes injected HTML in text", () => {
+    const html = buildHtml("Normal text <img src=x onerror=alert(1)>")
+    expect(html).not.toContain("<img")
+    expect(html).not.toContain("onerror")
+  })
+
+  it("contains full HTML document structure", () => {
+    const html = buildHtml("# Test")
+    expect(html).toContain("<!DOCTYPE html>")
+    expect(html).toContain("<html")
+    expect(html).toContain("<head>")
+    expect(html).toContain("<body>")
+    expect(html).toContain("</html>")
   })
 })
