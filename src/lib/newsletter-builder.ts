@@ -8,7 +8,7 @@ const SIGNIFICANCE_TO_IMPACT: Record<Significance, string> = {
   noise: "low",
 }
 
-function escapeMarkdown(text: string): string {
+export function escapeMarkdown(text: string): string {
   return text.replace(/([*_`#\[\]])/g, "\\$1")
 }
 
