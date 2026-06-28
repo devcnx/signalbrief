@@ -22,8 +22,8 @@ function buildMarkdown(
   items: Array<{
     provider: string
     sourceName: string
+    sourceUrl: string | null
     summary: string
-    sourceUrl: string
     impactLevel: string
     approved: boolean
   }>
@@ -62,7 +62,7 @@ function buildMarkdown(
       lines.push("")
       lines.push(escapeMarkdown(item.summary))
       lines.push("")
-      lines.push(`[Source](${item.sourceUrl})`)
+      lines.push(item.sourceUrl ? `[Source](${item.sourceUrl})` : `Source: ${escapeMarkdown(item.sourceName)}`)
       lines.push("")
     }
   }
