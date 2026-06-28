@@ -388,7 +388,7 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
           <DialogHeader>
             <DialogTitle>Test Fetch: {testResult?.sourceName}</DialogTitle>
             <DialogDescription>
-              {testResult?.ok ? `HTTP ${testResult.statusCode} — ${testResult.contentLength} chars extracted` : `Failed: ${testResult?.error}`}
+              {testResult?.ok ? `HTTP ${testResult.statusCode} — ${testResult.contentLength} chars extracted` : `Failed: ${testResult?.error || "Unknown error"}`}
             </DialogDescription>
           </DialogHeader>
           {testResult?.title && (

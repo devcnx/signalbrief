@@ -8,6 +8,7 @@ export type FetchResult = {
 }
 
 const FETCH_TIMEOUT_MS = 15000
+const MAX_RESPONSE_BYTES = 5 * 1024 * 1024
 const USER_AGENT = "SignalBrief/0.1 (local documentation monitor)"
 
 export async function fetchSource(url: string): Promise<FetchResult> {
@@ -24,13 +25,41 @@ export async function fetchSource(url: string): Promise<FetchResult> {
       redirect: "follow",
     })
 
+    if (!res.ok) {
+      return {
+        ok: false,
+        statusCode: res.status,
+        rawHtml: "",
+        errorMessage: `HTTP ${res.status} ${res.statusText}`,
+      }
+    }
+
+    const contentLength = parseInt(res.headers.get("content-length") || "0", 10)
+    if (contentLength > MAX_RESPONSE_BYTES) {
+      return {
+        ok: false,
+        statusCode: res.status,
+        rawHtml: "",
+        errorMessage: `Response too large (${contentLength} bytes, max ${MAX_RESPONSE_BYTES})`,
+      }
+    }
+
     const rawHtml = await res.text()
 
+    if (rawHtml.length > MAX_RESPONSE_BYTES) {
+      return {
+        ok: false,
+        statusCode: res.status,
+        rawHtml: "",
+        errorMessage: `Response too large (${rawHtml.length} chars, max ${MAX_RESPONSE_BYTES})`,
+      }
+    }
+
     return {
-      ok: res.ok,
+      ok: true,
       statusCode: res.status,
       rawHtml,
-      errorMessage: res.ok ? null : `HTTP ${res.status} ${res.statusText}`,
+      errorMessage: null,
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown fetch error"
