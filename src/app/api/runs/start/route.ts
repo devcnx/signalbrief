@@ -119,11 +119,23 @@ export async function POST() {
       try {
         priorText = await readSnapshotFile(priorSnapshot.cleanedContentPath)
       } catch {
-        console.error(`Prior snapshot file missing for source ${source.id}, treating as new content`)
+        console.warn(`Prior snapshot file missing for source ${source.id}, skipping change detection`)
       }
 
-      if (priorText === null) {
-        const changedText = "+++ added\n" + cleanResult.cleanedText.split("\n").map((l) => `+ ${l}`).join("\n")
+      if (priorText === null) continue
+
+      const diff = computeDiff(priorText, cleanResult.cleanedText)
+
+      if (diff.hasChanges) {
+        const changeType = priorText.length === 0 ? "new" : "updated"
+        const significance = classifyChange(diff.additions, diff.removals)
+
+        const changedText = [
+          diff.removals ? "--- removed\n" + diff.removals.split("\n").map((l) => `- ${l}`).join("\n") + "\n" : "",
+          diff.additions ? "+++ added\n" + diff.additions.split("\n").map((l) => `+ ${l}`).join("\n") : "",
+        ]
+          .filter(Boolean)
+          .join("\n")
 
         try {
           await prisma.detectedChange.create({
@@ -131,44 +143,14 @@ export async function POST() {
               sourceId: source.id,
               runId: run.id,
               snapshotId,
-              changeType: "new",
-              significance: classifyChange(cleanResult.cleanedText, ""),
+              changeType,
+              significance,
               changedText,
             },
           })
           changesFound++
         } catch (error) {
           console.error(`Failed to create DetectedChange for source ${source.id}:`, error)
-        }
-      } else {
-        const diff = computeDiff(priorText, cleanResult.cleanedText)
-
-        if (diff.hasChanges) {
-          const changeType = priorText.length === 0 ? "new" : "updated"
-          const significance = classifyChange(diff.additions, diff.removals)
-
-          const changedText = [
-            diff.removals ? "--- removed\n" + diff.removals.split("\n").map((l) => `- ${l}`).join("\n") + "\n" : "",
-            diff.additions ? "+++ added\n" + diff.additions.split("\n").map((l) => `+ ${l}`).join("\n") : "",
-          ]
-            .filter(Boolean)
-            .join("\n")
-
-          try {
-            await prisma.detectedChange.create({
-              data: {
-                sourceId: source.id,
-                runId: run.id,
-                snapshotId,
-                changeType,
-                significance,
-                changedText,
-              },
-            })
-            changesFound++
-          } catch (error) {
-            console.error(`Failed to create DetectedChange for source ${source.id}:`, error)
-          }
         }
       }
     }

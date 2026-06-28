@@ -1,4 +1,4 @@
-import { diffWords } from "diff"
+import { diffLines } from "diff"
 
 export type DiffSegment = {
   value: string
@@ -14,7 +14,7 @@ export type DiffResult = {
 }
 
 export function computeDiff(priorText: string, currentText: string): DiffResult {
-  const segments = diffWords(priorText, currentText)
+  const segments = diffLines(priorText, currentText)
 
   const additions = segments
     .filter((s) => s.added)

@@ -35,9 +35,6 @@ export default async function RunDetailPage({
           source: {
             select: { id: true, name: true, provider: true, url: true },
           },
-          changes: {
-            select: { id: true, changeType: true, significance: true },
-          },
         },
         orderBy: { fetchedAt: "desc" },
       },

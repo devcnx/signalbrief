@@ -94,7 +94,6 @@ export default async function DiffViewerPage({
               return (
                 <span key={i} className={className || undefined}>
                   {line}
-                  {"\n"}
                 </span>
               )
             })}

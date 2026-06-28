@@ -29,15 +29,8 @@ const NOISE_PATTERNS = [
   /footer|navigation|menu|sidebar/i,
   /(last\s+updated|last\s+modified|updated:\s+\w+)/i,
   /copyright|all rights reserved/i,
-  /\d{4}-\d{2}-\d{2}/,
   /(loading\.\.\.|please wait)/i,
 ]
-
-const SIGNIFICANCE_VALUES: Record<string, Significance> = {
-  high: "high",
-  medium: "medium",
-  low: "low",
-}
 
 function testPatterns(text: string, patterns: RegExp[]): boolean {
   return patterns.some((p) => p.test(text))
@@ -46,19 +39,10 @@ function testPatterns(text: string, patterns: RegExp[]): boolean {
 export function classifyChange(additions: string, removals: string): Significance {
   const combined = additions + "\n" + removals
 
-  const checks: [RegExp[], Significance][] = [
-    [HIGH_IMPACT_PATTERNS, "high"],
-    [MEDIUM_IMPACT_PATTERNS, "medium"],
-    [LOW_IMPACT_PATTERNS, "low"],
-  ]
-
-  for (const [patterns, significance] of checks) {
-    if (testPatterns(combined, patterns)) return SIGNIFICANCE_VALUES[significance]
-  }
-
-  for (const pattern of NOISE_PATTERNS) {
-    if (pattern.test(combined)) return "noise"
-  }
+  if (testPatterns(combined, HIGH_IMPACT_PATTERNS)) return "high"
+  if (testPatterns(combined, MEDIUM_IMPACT_PATTERNS)) return "medium"
+  if (testPatterns(combined, LOW_IMPACT_PATTERNS)) return "low"
+  if (testPatterns(combined, NOISE_PATTERNS)) return "noise"
 
   if (combined.length > 200) return "medium"
 
