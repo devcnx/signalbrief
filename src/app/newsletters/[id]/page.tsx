@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/button"
 import { significanceColor } from "@/lib/significance-utils"
 import { stripDiffMarkers } from "@/lib/readability"
 
+const DIFF_MARKER_RE = /^(--- removed|\+\+\+ added|- |\+ )/m
+
+function looksLikeRawDiff(text: string): boolean {
+  return DIFF_MARKER_RE.test(text)
+}
+
 type NewsletterItem = {
   id: string
   title: string
@@ -173,7 +179,9 @@ export default function NewsletterDraftPage({
                       {item.confidence} confidence
                     </Badge>
                   </div>
-                  <p className="text-sm mt-2 whitespace-pre-wrap">{stripDiffMarkers(item.summary)}</p>
+                  <p className="text-sm mt-2 whitespace-pre-wrap">
+                    {looksLikeRawDiff(item.summary) ? stripDiffMarkers(item.summary) : item.summary}
+                  </p>
                   <p className="text-xs text-muted-foreground mt-2">{item.whyItMatters}</p>
                   {item.recommendedAction && (
                     <p className="text-xs text-muted-foreground mt-1">

@@ -3,7 +3,7 @@ const ADDED_HEADER = "+++ added"
 
 function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
-  return text.slice(0, maxLength - 3) + "..."
+  return text.slice(0, Math.max(0, maxLength - 3)) + "..."
 }
 
 type ParsedDiff = {
@@ -25,9 +25,9 @@ export function parseChangedText(changedText: string): ParsedDiff {
       section = "added"
       continue
     }
-    if (section === "removed" && rawLine.startsWith("- ")) {
+    if (rawLine.startsWith("- ")) {
       removals.push(rawLine.slice(2))
-    } else if (section === "added" && rawLine.startsWith("+ ")) {
+    } else if (rawLine.startsWith("+ ")) {
       additions.push(rawLine.slice(2))
     } else if (section !== "none" && rawLine.trim().length > 0) {
       if (section === "removed") removals.push(rawLine)
@@ -42,13 +42,13 @@ export function stripDiffMarkers(changedText: string): string {
   const { additions, removals } = parseChangedText(changedText)
 
   if (additions.length > 0 && removals.length > 0) {
-    return `Updated: ${additions.join(" ")}\n\nPreviously: ${removals.join(" ")}`
+    return `Updated:\n${additions.join("\n")}\n\nPreviously:\n${removals.join("\n")}`
   }
   if (additions.length > 0) {
-    return additions.join(" ")
+    return additions.join("\n")
   }
   if (removals.length > 0) {
-    return `Removed: ${removals.join(" ")}`
+    return `Removed:\n${removals.join("\n")}`
   }
   return changedText
     .replace(/^--- removed\n?/m, "")
@@ -58,7 +58,7 @@ export function stripDiffMarkers(changedText: string): string {
     .trim()
 }
 
-export function buildReadableTitle(changedText: string, sourceName: string, changeType: string): string {
+export function buildReadableTitle(changedText: string, sourceName: string, _changeType: string): string {
   const { additions, removals } = parseChangedText(changedText)
 
   const pick = (lines: string[]): string => {
@@ -66,18 +66,8 @@ export function buildReadableTitle(changedText: string, sourceName: string, chan
     return first.trim()
   }
 
-  let body: string
-  if (changeType === "new" && additions.length > 0) {
-    body = pick(additions)
-  } else if (removals.length > 0 && additions.length === 0) {
-    body = pick(removals)
-  } else if (additions.length > 0) {
-    body = pick(additions)
-  } else if (removals.length > 0) {
-    body = pick(removals)
-  } else {
-    body = sourceName
-  }
+  const lines = additions.length > 0 ? additions : removals
+  const body = lines.length > 0 ? pick(lines) : sourceName
 
   return truncate(body, 80)
 }
@@ -90,4 +80,17 @@ export function buildReadableSummary(changedText: string, maxLength: number = 40
 export function buildChangePreview(changedText: string, maxLength: number = 200): string {
   const readable = stripDiffMarkers(changedText)
   return truncate(readable, maxLength)
+}
+
+export type DiffSection = {
+  type: "removed" | "added"
+  lines: string[]
+}
+
+export function groupDiffSections(changedText: string): DiffSection[] {
+  const { additions, removals } = parseChangedText(changedText)
+  const sections: DiffSection[] = []
+  if (removals.length > 0) sections.push({ type: "removed", lines: removals })
+  if (additions.length > 0) sections.push({ type: "added", lines: additions })
+  return sections
 }

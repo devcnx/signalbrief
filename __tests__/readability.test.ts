@@ -5,6 +5,7 @@ import {
   buildReadableTitle,
   buildReadableSummary,
   buildChangePreview,
+  groupDiffSections,
 } from "@/lib/readability"
 
 describe("parseChangedText", () => {
@@ -65,24 +66,26 @@ describe("stripDiffMarkers", () => {
   it("prefixes removals when no additions", () => {
     const changedText = "--- removed\n- old content"
     const result = stripDiffMarkers(changedText)
-    expect(result).toBe("Removed: old content")
+    expect(result).toBe("Removed:\nold content")
   })
 
-  it("joins multiple lines with spaces", () => {
+  it("joins multiple lines with newlines preserving structure", () => {
     const changedText = "+++ added\n+ line one\n+ line two"
     const result = stripDiffMarkers(changedText)
-    expect(result).toBe("line one line two")
+    expect(result).toBe("line one\nline two")
   })
 
   it("handles empty changedText", () => {
     expect(stripDiffMarkers("")).toBe("")
   })
 
-  it("falls back to regex strip for non-standard format", () => {
+  it("handles header-less diffs with marker lines", () => {
     const changedText = "- some line\n+ another line"
     const result = stripDiffMarkers(changedText)
     expect(result).toContain("some line")
     expect(result).toContain("another line")
+    expect(result).toContain("Updated:")
+    expect(result).toContain("Previously:")
   })
 })
 
@@ -161,5 +164,64 @@ describe("buildChangePreview", () => {
     const changedText = `+++ added\n+ ${"A".repeat(300)}`
     const preview = buildChangePreview(changedText, 100)
     expect(preview.length).toBe(100)
+  })
+})
+
+describe("buildReadableTitle edge cases", () => {
+  it("falls back to removals when changeType is new but only removals exist", () => {
+    const changedText = "--- removed\n- Deprecated endpoint"
+    const title = buildReadableTitle(changedText, "Source", "new")
+    expect(title).toBe("Deprecated endpoint")
+  })
+
+  it("falls back to source name when changeType is new but no content", () => {
+    const title = buildReadableTitle("", "My Source", "new")
+    expect(title).toBe("My Source")
+  })
+})
+
+describe("parseChangedText mixed lines", () => {
+  it("handles mixed prefixed and non-prefixed lines in a section", () => {
+    const changedText = "--- removed\n- prefixed line\nnon-prefixed line"
+    const result = parseChangedText(changedText)
+    expect(result.removals).toContain("prefixed line")
+    expect(result.removals).toContain("non-prefixed line")
+  })
+})
+
+describe("groupDiffSections", () => {
+  it("groups removals and additions into sections", () => {
+    const changedText = "--- removed\n- old line\n+++ added\n+ new line"
+    const sections = groupDiffSections(changedText)
+    expect(sections).toHaveLength(2)
+    expect(sections[0].type).toBe("removed")
+    expect(sections[0].lines).toEqual(["old line"])
+    expect(sections[1].type).toBe("added")
+    expect(sections[1].lines).toEqual(["new line"])
+  })
+
+  it("returns single removed section when only removals", () => {
+    const changedText = "--- removed\n- old line"
+    const sections = groupDiffSections(changedText)
+    expect(sections).toHaveLength(1)
+    expect(sections[0].type).toBe("removed")
+  })
+
+  it("returns single added section when only additions", () => {
+    const changedText = "+++ added\n+ new line"
+    const sections = groupDiffSections(changedText)
+    expect(sections).toHaveLength(1)
+    expect(sections[0].type).toBe("added")
+  })
+
+  it("returns empty array for empty input", () => {
+    const sections = groupDiffSections("")
+    expect(sections).toEqual([])
+  })
+
+  it("handles header-less diffs with marker lines", () => {
+    const changedText = "- removed without header\n+ added without header"
+    const sections = groupDiffSections(changedText)
+    expect(sections.length).toBeGreaterThan(0)
   })
 })

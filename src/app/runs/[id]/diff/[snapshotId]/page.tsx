@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/db"
 import { significanceColor } from "@/lib/significance-utils"
+import { groupDiffSections } from "@/lib/readability"
 import { Badge } from "@/components/ui/badge"
 
 export const dynamic = "force-dynamic"
@@ -80,20 +81,7 @@ export default async function DiffViewerPage({
         </div>
         <div className="p-4 space-y-4">
           {(() => {
-            const lines = change.changedText.split("\n")
-            const sections: Array<{ type: "removed" | "added"; lines: string[] }> = []
-            let current: { type: "removed" | "added"; lines: string[] } | null = null
-            for (const line of lines) {
-              if (line === "--- removed") {
-                current = { type: "removed", lines: [] }
-                sections.push(current)
-              } else if (line === "+++ added") {
-                current = { type: "added", lines: [] }
-                sections.push(current)
-              } else if (current && line.trim().length > 0) {
-                current.lines.push(line)
-              }
-            }
+            const sections = groupDiffSections(change.changedText)
 
             if (sections.length === 0) {
               return (
@@ -117,7 +105,6 @@ export default async function DiffViewerPage({
                 <div className="rounded-md border border-border overflow-hidden">
                   {section.lines.map((line, j) => {
                     const isRemoved = section.type === "removed"
-                    const content = line.replace(/^[-+] /, "")
                     return (
                       <div
                         key={j}
@@ -127,7 +114,7 @@ export default async function DiffViewerPage({
                             : "bg-green-50/50 dark:bg-green-950/20 text-green-700 dark:text-green-400"
                         } ${j > 0 ? "border-t border-border/40" : ""}`}
                       >
-                        {content}
+                        {line}
                       </div>
                     )
                   })}
