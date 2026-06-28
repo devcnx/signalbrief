@@ -78,26 +78,63 @@ export default async function DiffViewerPage({
             Fetched at: {new Date(snapshot.fetchedAt).toLocaleString()}
           </p>
         </div>
-        <div className="p-4">
-          <pre className="text-sm font-mono whitespace-pre-wrap leading-relaxed">
-            {change.changedText.split("\n").map((line, i) => {
-              let className = ""
-              if (line.startsWith("--- removed")) {
-                className = "text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-950/30 -mx-4 px-4 py-0.5 block"
-              } else if (line.startsWith("+++ added")) {
-                className = "text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-950/30 -mx-4 px-4 py-0.5 block"
-              } else if (line.startsWith("- ")) {
-                className = "text-red-600 -ml-4 pl-4 border-l-2 border-red-400"
-              } else if (line.startsWith("+ ")) {
-                className = "text-green-600 -ml-4 pl-4 border-l-2 border-green-400"
+        <div className="p-4 space-y-4">
+          {(() => {
+            const lines = change.changedText.split("\n")
+            const sections: Array<{ type: "removed" | "added"; lines: string[] }> = []
+            let current: { type: "removed" | "added"; lines: string[] } | null = null
+            for (const line of lines) {
+              if (line === "--- removed") {
+                current = { type: "removed", lines: [] }
+                sections.push(current)
+              } else if (line === "+++ added") {
+                current = { type: "added", lines: [] }
+                sections.push(current)
+              } else if (current && line.trim().length > 0) {
+                current.lines.push(line)
               }
+            }
+
+            if (sections.length === 0) {
               return (
-                <span key={i} className={className || undefined}>
-                  {line}
-                </span>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {change.changedText}
+                </p>
               )
-            })}
-          </pre>
+            }
+
+            return sections.map((section, i) => (
+              <div key={i}>
+                <div
+                  className={`text-xs font-semibold uppercase tracking-wide mb-2 ${
+                    section.type === "removed"
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-green-600 dark:text-green-400"
+                  }`}
+                >
+                  {section.type === "removed" ? "Removed" : "Added"}
+                </div>
+                <div className="rounded-md border border-border overflow-hidden">
+                  {section.lines.map((line, j) => {
+                    const isRemoved = section.type === "removed"
+                    const content = line.replace(/^[-+] /, "")
+                    return (
+                      <div
+                        key={j}
+                        className={`px-3 py-1 text-sm font-mono whitespace-pre-wrap leading-relaxed ${
+                          isRemoved
+                            ? "bg-red-50/50 dark:bg-red-950/20 text-red-700 dark:text-red-400"
+                            : "bg-green-50/50 dark:bg-green-950/20 text-green-700 dark:text-green-400"
+                        } ${j > 0 ? "border-t border-border/40" : ""}`}
+                      >
+                        {content}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))
+          })()}
         </div>
       </div>
     </div>
