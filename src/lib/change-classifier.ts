@@ -36,10 +36,6 @@ const NOISE_PATTERNS = [
 export function classifyChange(diffText: string): Significance {
   const text = diffText.slice(0, 500)
 
-  for (const pattern of NOISE_PATTERNS) {
-    if (pattern.test(text)) return "noise"
-  }
-
   for (const [patterns, significance] of [
     [HIGH_IMPACT_PATTERNS, "high"],
     [MEDIUM_IMPACT_PATTERNS, "medium"],
@@ -48,6 +44,10 @@ export function classifyChange(diffText: string): Significance {
     for (const pattern of patterns) {
       if (pattern.test(text)) return significance as Significance
     }
+  }
+
+  for (const pattern of NOISE_PATTERNS) {
+    if (pattern.test(text)) return "noise"
   }
 
   if (diffText.length > 200) return "medium"

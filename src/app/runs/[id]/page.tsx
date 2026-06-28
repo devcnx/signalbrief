@@ -19,11 +19,14 @@ const statusColors: Record<string, string> = {
   skipped: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
 }
 
-const significanceColors: Record<string, string> = {
-  high: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  medium: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  low: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  noise: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+function significanceColor(significance: string): string {
+  const colors: Record<string, string> = {
+    high: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+    medium: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+    low: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+    noise: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+  }
+  return colors[significance] || ""
 }
 
 export default async function RunDetailPage({
@@ -64,8 +67,6 @@ export default async function RunDetailPage({
 
   const successCount = run.snapshots.filter((s) => s.status === "success").length
   const failedCount = run.snapshots.filter((s) => s.status === "failed").length
-
-  const changedSourceIds = new Set(run.changes.map((c) => c.sourceId))
 
   return (
     <div className="flex-1 p-8">
@@ -150,7 +151,7 @@ export default async function RunDetailPage({
                               href={`/runs/${run.id}/diff/${snapshot.id}?changeId=${change.id}`}
                               className="text-sm text-primary hover:underline"
                             >
-                              <Badge className={significanceColors[change.significance] || ""}>
+                              <Badge className={significanceColor(change.significance)}>
                                 {change.changeType} ({change.significance})
                               </Badge>
                             </Link>
@@ -192,7 +193,7 @@ export default async function RunDetailPage({
                     <p className="text-xs text-muted-foreground">{change.source.provider}</p>
                   </div>
                   <div className="flex gap-2">
-                    <Badge className={significanceColors[change.significance] || ""}>
+                    <Badge className={significanceColor(change.significance)}>
                       {change.significance}
                     </Badge>
                     <Badge variant="outline">{change.changeType}</Badge>

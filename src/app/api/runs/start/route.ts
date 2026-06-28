@@ -123,8 +123,8 @@ export async function POST() {
           const significance = classifyChange(diff.additions)
 
           const changedText = [
-            diff.removals ? `--- removed\n${diff.removals}\n` : "",
-            diff.additions ? `+++ added\n${diff.additions}` : "",
+            diff.removals ? "--- removed\n" + diff.removals.split("\n").map((l) => `- ${l}`).join("\n") + "\n" : "",
+            diff.additions ? "+++ added\n" + diff.additions.split("\n").map((l) => `+ ${l}`).join("\n") : "",
           ]
             .filter(Boolean)
             .join("\n")
