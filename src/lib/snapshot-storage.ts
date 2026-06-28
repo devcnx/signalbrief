@@ -27,5 +27,9 @@ export async function saveSnapshot(
 }
 
 export async function readSnapshotFile(filePath: string): Promise<string> {
-  return fs.readFile(filePath, "utf-8")
+  const resolved = path.resolve(filePath)
+  if (!resolved.startsWith(SNAPSHOT_BASE_DIR + path.sep) && resolved !== SNAPSHOT_BASE_DIR) {
+    throw new Error(`Path traversal rejected: ${filePath}`)
+  }
+  return fs.readFile(resolved, "utf-8")
 }
