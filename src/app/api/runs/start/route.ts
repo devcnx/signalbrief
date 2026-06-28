@@ -125,18 +125,21 @@ export async function POST() {
       if (priorText === null) {
         const changedText = "+++ added\n" + cleanResult.cleanedText.split("\n").map((l) => `+ ${l}`).join("\n")
 
-        await prisma.detectedChange.create({
-          data: {
-            sourceId: source.id,
-            runId: run.id,
-            snapshotId,
-            changeType: "new",
-            significance: classifyChange(cleanResult.cleanedText, ""),
-            changedText,
-          },
-        })
-
-        changesFound++
+        try {
+          await prisma.detectedChange.create({
+            data: {
+              sourceId: source.id,
+              runId: run.id,
+              snapshotId,
+              changeType: "new",
+              significance: classifyChange(cleanResult.cleanedText, ""),
+              changedText,
+            },
+          })
+          changesFound++
+        } catch (error) {
+          console.error(`Failed to create DetectedChange for source ${source.id}:`, error)
+        }
       } else {
         const diff = computeDiff(priorText, cleanResult.cleanedText)
 
@@ -151,18 +154,21 @@ export async function POST() {
             .filter(Boolean)
             .join("\n")
 
-          await prisma.detectedChange.create({
-            data: {
-              sourceId: source.id,
-              runId: run.id,
-              snapshotId,
-              changeType,
-              significance,
-              changedText,
-            },
-          })
-
-          changesFound++
+          try {
+            await prisma.detectedChange.create({
+              data: {
+                sourceId: source.id,
+                runId: run.id,
+                snapshotId,
+                changeType,
+                significance,
+                changedText,
+              },
+            })
+            changesFound++
+          } catch (error) {
+            console.error(`Failed to create DetectedChange for source ${source.id}:`, error)
+          }
         }
       }
     }

@@ -58,7 +58,15 @@ export default async function RunDetailPage({
 
   const successCount = run.snapshots.filter((s) => s.status === "success").length
   const failedCount = run.snapshots.filter((s) => s.status === "failed").length
-  const changesBySnapshot = new Map(run.changes.map((c) => [c.snapshotId, run.changes.filter((x) => x.snapshotId === c.snapshotId)]))
+  const changesBySnapshot = new Map<string, typeof run.changes>()
+  for (const change of run.changes) {
+    const existing = changesBySnapshot.get(change.snapshotId)
+    if (existing) {
+      existing.push(change)
+    } else {
+      changesBySnapshot.set(change.snapshotId, [change])
+    }
+  }
 
   return (
     <div className="flex-1 p-8">
