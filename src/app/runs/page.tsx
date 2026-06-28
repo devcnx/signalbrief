@@ -24,6 +24,15 @@ export default async function RunsPage() {
   const runs = await prisma.run.findMany({
     orderBy: { startedAt: "desc" },
     take: 50,
+    select: {
+      id: true,
+      startedAt: true,
+      completedAt: true,
+      status: true,
+      sourcesChecked: true,
+      errorsCount: true,
+      changesFound: true,
+    },
   })
 
   return (
@@ -37,6 +46,7 @@ export default async function RunsPage() {
               <TableHead>Started</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Sources Checked</TableHead>
+              <TableHead>Changes</TableHead>
               <TableHead>Errors</TableHead>
               <TableHead>Completed</TableHead>
             </TableRow>
@@ -44,7 +54,7 @@ export default async function RunsPage() {
           <TableBody>
             {runs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   No runs yet. Click "Run Scan" on the dashboard to start.
                 </TableCell>
               </TableRow>
@@ -62,6 +72,13 @@ export default async function RunsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>{run.sourcesChecked}</TableCell>
+                  <TableCell>
+                    {run.changesFound > 0 ? (
+                      <span className="text-amber-600 font-medium">{run.changesFound}</span>
+                    ) : (
+                      <span className="text-muted-foreground">0</span>
+                    )}
+                  </TableCell>
                   <TableCell>{run.errorsCount}</TableCell>
                   <TableCell>
                     {run.completedAt ? new Date(run.completedAt).toLocaleTimeString() : "—"}

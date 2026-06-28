@@ -19,6 +19,13 @@ const statusColors: Record<string, string> = {
   skipped: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
 }
 
+const significanceColors: Record<string, string> = {
+  high: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  medium: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  low: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  noise: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+}
+
 export default async function RunDetailPage({
   params,
 }: {
@@ -34,8 +41,19 @@ export default async function RunDetailPage({
           source: {
             select: { id: true, name: true, provider: true, url: true },
           },
+          changes: {
+            select: { id: true, changeType: true, significance: true },
+          },
         },
         orderBy: { fetchedAt: "desc" },
+      },
+      changes: {
+        include: {
+          source: {
+            select: { id: true, name: true, provider: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
       },
     },
   })
@@ -46,6 +64,8 @@ export default async function RunDetailPage({
 
   const successCount = run.snapshots.filter((s) => s.status === "success").length
   const failedCount = run.snapshots.filter((s) => s.status === "failed").length
+
+  const changedSourceIds = new Set(run.changes.map((c) => c.sourceId))
 
   return (
     <div className="flex-1 p-8">
@@ -60,7 +80,7 @@ export default async function RunDetailPage({
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4 mb-8">
+      <div className="grid gap-4 md:grid-cols-5 mb-8">
         <div className="rounded-lg border border-border p-4">
           <p className="text-sm text-muted-foreground">Status</p>
           <p className="text-lg font-semibold mt-1">{run.status.replace(/_/g, " ")}</p>
@@ -72,6 +92,10 @@ export default async function RunDetailPage({
         <div className="rounded-lg border border-border p-4">
           <p className="text-sm text-muted-foreground">Succeeded</p>
           <p className="text-lg font-semibold mt-1 text-green-600">{successCount}</p>
+        </div>
+        <div className="rounded-lg border border-border p-4">
+          <p className="text-sm text-muted-foreground">Changes</p>
+          <p className="text-lg font-semibold mt-1 text-amber-600">{run.changesFound}</p>
         </div>
         <div className="rounded-lg border border-border p-4">
           <p className="text-sm text-muted-foreground">Failed</p>
@@ -86,6 +110,7 @@ export default async function RunDetailPage({
             <TableRow>
               <TableHead>Source</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Changes</TableHead>
               <TableHead>HTTP Code</TableHead>
               <TableHead>Hash</TableHead>
               <TableHead>Error</TableHead>
@@ -94,37 +119,99 @@ export default async function RunDetailPage({
           <TableBody>
             {run.snapshots.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   No snapshots for this run.
                 </TableCell>
               </TableRow>
             ) : (
-              run.snapshots.map((snapshot) => (
-                <TableRow key={snapshot.id}>
-                  <TableCell>
-                    <Link href={snapshot.source.url} className="text-primary hover:underline" target="_blank">
-                      {snapshot.source.name}
-                    </Link>
-                    <p className="text-xs text-muted-foreground">{snapshot.source.provider}</p>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={statusColors[snapshot.status] || ""}>
-                      {snapshot.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{snapshot.statusCode ?? "—"}</TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {snapshot.contentHash ? snapshot.contentHash.slice(0, 12) + "..." : "—"}
-                  </TableCell>
-                  <TableCell className="text-sm text-destructive">
-                    {snapshot.errorMessage || "—"}
-                  </TableCell>
-                </TableRow>
-              ))
+              run.snapshots.map((snapshot) => {
+                const snapshotChanges = run.changes.filter(
+                  (c) => c.snapshotId === snapshot.id
+                )
+                return (
+                  <TableRow key={snapshot.id}>
+                    <TableCell>
+                      <Link href={snapshot.source.url} className="text-primary hover:underline" target="_blank">
+                        {snapshot.source.name}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">{snapshot.source.provider}</p>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={statusColors[snapshot.status] || ""}>
+                        {snapshot.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {snapshotChanges.length > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          {snapshotChanges.map((change) => (
+                            <Link
+                              key={change.id}
+                              href={`/runs/${run.id}/diff/${snapshot.id}?changeId=${change.id}`}
+                              className="text-sm text-primary hover:underline"
+                            >
+                              <Badge className={significanceColors[change.significance] || ""}>
+                                {change.changeType} ({change.significance})
+                              </Badge>
+                            </Link>
+                          ))}
+                        </div>
+                      ) : snapshot.status === "success" ? (
+                        <span className="text-sm text-muted-foreground">No change</span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>{snapshot.statusCode ?? "—"}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {snapshot.contentHash ? snapshot.contentHash.slice(0, 12) + "..." : "—"}
+                    </TableCell>
+                    <TableCell className="text-sm text-destructive">
+                      {snapshot.errorMessage || "—"}
+                    </TableCell>
+                  </TableRow>
+                )
+              })
             )}
           </TableBody>
         </Table>
       </div>
+
+      {run.changes.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Detected Changes</h2>
+          <div className="space-y-3">
+            {run.changes.map((change) => (
+              <div
+                key={change.id}
+                className="rounded-lg border border-border p-4"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="font-medium">{change.source.name}</p>
+                    <p className="text-xs text-muted-foreground">{change.source.provider}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge className={significanceColors[change.significance] || ""}>
+                      {change.significance}
+                    </Badge>
+                    <Badge variant="outline">{change.changeType}</Badge>
+                    <Link
+                      href={`/runs/${run.id}/diff/${change.snapshotId}?changeId=${change.id}`}
+                      className="inline-flex h-8 items-center rounded-md border border-border px-3 text-xs font-medium hover:bg-accent"
+                    >
+                      View Diff
+                    </Link>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {change.changedText.slice(0, 300)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
