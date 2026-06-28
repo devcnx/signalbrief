@@ -71,4 +71,13 @@ describe("computeDiff", () => {
     expect(Array.isArray(result.segments)).toBe(true)
     expect(result.segments.length).toBeGreaterThan(0)
   })
+
+  it("detects additions and removals together", () => {
+    const prior = "keep this\nremove this"
+    const current = "keep this\nadd this"
+    const result = computeDiff(prior, current)
+    expect(result.hasChanges).toBe(true)
+    expect(result.additions).toContain("add this")
+    expect(result.removals).toContain("remove this")
+  })
 })

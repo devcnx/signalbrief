@@ -3,9 +3,9 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { fetchSource, generateContentHash } from "@/lib/source-fetcher"
 import { cleanHtml } from "@/lib/content-cleaner"
-import { saveSnapshot, readSnapshotFile } from "@/lib/snapshot-storage"
-import { computeDiff } from "@/lib/diff-engine"
-import { classifyChange } from "@/lib/change-classifier"
+import { saveSnapshot } from "@/lib/snapshot-storage"
+import { detectAndRecordChanges } from "@/lib/change-detector"
+import { buildNewsletter } from "@/lib/newsletter-builder"
 
 export async function POST() {
   const run = await prisma.run.create({
@@ -101,59 +101,13 @@ export async function POST() {
       continue
     }
 
-    const priorSnapshot = await prisma.snapshot.findFirst({
-      where: {
-        sourceId: source.id,
-        status: "success",
-        runId: { not: run.id },
-        contentHash: { not: null },
-      },
-      orderBy: { fetchedAt: "desc" },
+    changesFound += await detectAndRecordChanges({
+      sourceId: source.id,
+      runId: run.id,
+      snapshotId,
+      currentHash: contentHash,
+      currentText: cleanResult.cleanedText,
     })
-
-    if (priorSnapshot && contentHash === priorSnapshot.contentHash) continue
-
-    if (priorSnapshot && priorSnapshot.cleanedContentPath) {
-      let priorText: string | null = null
-
-      try {
-        priorText = await readSnapshotFile(priorSnapshot.cleanedContentPath)
-      } catch {
-        console.warn(`Prior snapshot file missing for source ${source.id}, skipping change detection`)
-      }
-
-      if (priorText === null) continue
-
-      const diff = computeDiff(priorText, cleanResult.cleanedText)
-
-      if (diff.hasChanges) {
-        const changeType = priorText.length === 0 ? "new" : "updated"
-        const significance = classifyChange(diff.additions, diff.removals)
-
-        const changedText = [
-          diff.removals ? "--- removed\n" + diff.removals.split("\n").map((l) => `- ${l}`).join("\n") + "\n" : "",
-          diff.additions ? "+++ added\n" + diff.additions.split("\n").map((l) => `+ ${l}`).join("\n") : "",
-        ]
-          .filter(Boolean)
-          .join("\n")
-
-        try {
-          await prisma.detectedChange.create({
-            data: {
-              sourceId: source.id,
-              runId: run.id,
-              snapshotId,
-              changeType,
-              significance,
-              changedText,
-            },
-          })
-          changesFound++
-        } catch (error) {
-          console.error(`Failed to create DetectedChange for source ${source.id}:`, error)
-        }
-      }
-    }
   }
 
   const status = errorsCount === 0 ? "completed" : errorsCount === sourcesChecked ? "failed" : "completed_with_errors"
@@ -169,5 +123,17 @@ export async function POST() {
     },
   })
 
-  return NextResponse.json(updatedRun, { status: 201 })
+  let newsletter = null
+  if (changesFound > 0) {
+    try {
+      newsletter = await buildNewsletter(run.id)
+    } catch (error) {
+      console.error(`Failed to build newsletter for run ${run.id}:`, error)
+    }
+  }
+
+  return NextResponse.json(
+    { ...updatedRun, newsletterId: newsletter?.id ?? null },
+    { status: 201 }
+  )
 }

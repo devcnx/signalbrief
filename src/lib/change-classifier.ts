@@ -1,28 +1,28 @@
 import type { Significance } from "@/lib/types"
 
 const HIGH_IMPACT_PATTERNS = [
-  /new\s+(model|api|capability|platform|service)/i,
-  /(deprecat|sunset|end[\s-]of[\s-]life)/i,
-  /(breaking|backward[\s-]incompatib)/i,
-  /(securit|vulnerability|exploit|patch|CVE-\d)/i,
-  /(pricing|price[\s-]change|rate[\s-]limit\s+(change|increas|decreas|remov)|quota\s+(change|increas|decreas))/i,
-  /(complianc|regulat|gdpr|hipaa|soc2)/i,
-  /(enterprise[\s-]feature|enterprise[\s-]tier)/i,
+  /\bnew\s+(model|api|capability|platform|service)\b/i,
+  /\b(deprecated|deprecation|sunset|end[\s-]of[\s-]life)\b/i,
+  /\b(breaking|backward[\s-]incompatible)\b/i,
+  /\b(security|vulnerability|exploit|patch|CVE-\d{4}-\d+)\b/i,
+  /\b(pricing|price[\s-]change|rate[\s-]limit\s+(change|increas|decreas|remov)|quota\s+(change|increas|decreas))\b/i,
+  /\b(compliance|compliant|regulation|regulatory|gdpr|hipaa|soc2)\b/i,
+  /\b(enterprise[\s-]feature|enterprise[\s-]tier)\b/i,
 ]
 
 const MEDIUM_IMPACT_PATTERNS = [
-  /(sdk|library|package)\s+(update|release|version)/i,
-  /(documentation|doc|guide|tutorial)\s+(add|updat|new)/i,
-  /(preview|beta|early[\s-]access|experimental)/i,
-  /(behavior|behaviour)/i,
-  /(integration|integrat)/i,
+  /\b(sdk|library|package)\s+(update|updates|updated|release|releases|released|version)\b/i,
+  /\b(documentation|doc|guide|tutorial)\s+(added|updated|new)\b/i,
+  /\b(preview|beta|early[\s-]access|experimental)\b/i,
+  /\b(behavior|behaviour)\b/i,
+  /\b(integration|integrating)\b/i,
 ]
 
 const LOW_IMPACT_PATTERNS = [
-  /minor\s+(update|fix|improve)/i,
-  /(clarif|clarification)/i,
-  /small\s+(change|update|tweak)/i,
-  /(example|sample)/i,
+  /\bminor\s+(update|fix|improve)\b/i,
+  /\b(clarification|clarifying)\b/i,
+  /\bsmall\s+(change|update|tweak)\b/i,
+  /\b(example|sample)\b/i,
 ]
 
 const NOISE_PATTERNS = [
