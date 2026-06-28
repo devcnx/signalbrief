@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Pencil, Trash2, Plus } from "lucide-react"
+import { Pencil, Trash2, Plus, Zap } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -88,6 +88,16 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
   const [saving, setSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Source | null>(null)
+  const [testingId, setTestingId] = useState<string | null>(null)
+  const [testResult, setTestResult] = useState<{
+    sourceName: string
+    ok: boolean
+    statusCode: number
+    title: string | null
+    contentLength: number
+    preview: string
+    error: string | null
+  } | null>(null)
 
   useEffect(() => {
     setSources(initialSources)
@@ -190,6 +200,28 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
     }
   }
 
+  async function handleTestFetch(source: Source) {
+    setTestingId(source.id)
+    setErrorMessage(null)
+    try {
+      const res = await fetch(`/api/sources/${source.id}/test`, { method: "POST" })
+      const data = await res.json()
+      setTestResult({
+        sourceName: source.name,
+        ok: data.ok,
+        statusCode: data.statusCode,
+        title: data.title,
+        contentLength: data.contentLength,
+        preview: data.preview,
+        error: data.error,
+      })
+    } catch {
+      setErrorMessage("Network error — failed to test fetch")
+    } finally {
+      setTestingId(null)
+    }
+  }
+
   function openEdit(source: Source) {
     setForm({
       name: source.name,
@@ -243,7 +275,7 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
               <TableHead>Type</TableHead>
               <TableHead>Priority</TableHead>
               <TableHead>Active</TableHead>
-              <TableHead className="w-24">Actions</TableHead>
+              <TableHead className="w-32">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -283,6 +315,9 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => handleTestFetch(source)} disabled={testingId === source.id}>
+                        <Zap className="h-4 w-4" />
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(source)} disabled={saving}>
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -343,6 +378,34 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
               }}
             >
               {saving ? "Deactivating..." : "Deactivate"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={testResult !== null} onOpenChange={(open) => { if (!open) setTestResult(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Test Fetch: {testResult?.sourceName}</DialogTitle>
+            <DialogDescription>
+              {testResult?.ok ? `HTTP ${testResult.statusCode} — ${testResult.contentLength} chars extracted` : `Failed: ${testResult?.error}`}
+            </DialogDescription>
+          </DialogHeader>
+          {testResult?.title && (
+            <div>
+              <p className="text-sm font-medium mb-1">Page Title</p>
+              <p className="text-sm text-muted-foreground">{testResult.title}</p>
+            </div>
+          )}
+          {testResult?.ok && testResult.preview && (
+            <div>
+              <p className="text-sm font-medium mb-1">Content Preview</p>
+              <p className="text-xs text-muted-foreground max-h-40 overflow-y-auto whitespace-pre-wrap">{testResult.preview}</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTestResult(null)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

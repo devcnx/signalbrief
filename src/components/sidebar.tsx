@@ -2,11 +2,12 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Rss, LayoutDashboard } from "lucide-react"
+import { Rss, LayoutDashboard, ScanLine } from "lucide-react"
 
 const links = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/sources", label: "Sources", icon: Rss },
+  { href: "/runs", label: "Runs", icon: ScanLine },
 ]
 
 export function Sidebar() {
