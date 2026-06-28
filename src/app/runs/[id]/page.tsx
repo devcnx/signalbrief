@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/db"
+import { significanceColor } from "@/lib/significance-utils"
 import { Badge } from "@/components/ui/badge"
 import {
   Table,
@@ -17,16 +18,6 @@ const statusColors: Record<string, string> = {
   success: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
   failed: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
   skipped: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-}
-
-function significanceColor(significance: string): string {
-  const colors: Record<string, string> = {
-    high: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-    medium: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-    low: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-    noise: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  }
-  return colors[significance] || ""
 }
 
 export default async function RunDetailPage({
@@ -67,6 +58,7 @@ export default async function RunDetailPage({
 
   const successCount = run.snapshots.filter((s) => s.status === "success").length
   const failedCount = run.snapshots.filter((s) => s.status === "failed").length
+  const changesBySnapshot = new Map(run.changes.map((c) => [c.snapshotId, run.changes.filter((x) => x.snapshotId === c.snapshotId)]))
 
   return (
     <div className="flex-1 p-8">
@@ -126,9 +118,7 @@ export default async function RunDetailPage({
               </TableRow>
             ) : (
               run.snapshots.map((snapshot) => {
-                const snapshotChanges = run.changes.filter(
-                  (c) => c.snapshotId === snapshot.id
-                )
+                const snapshotChanges = changesBySnapshot.get(snapshot.id) || []
                 return (
                   <TableRow key={snapshot.id}>
                     <TableCell>

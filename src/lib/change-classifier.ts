@@ -2,7 +2,7 @@ import type { Significance } from "@/lib/types"
 
 const HIGH_IMPACT_PATTERNS = [
   /new\s+(model|api|capability|platform|service)/i,
-  /(deprecat|remov|sunset|end[\s-]of[\s-]life)/i,
+  /(deprecat|sunset|end[\s-]of[\s-]life)/i,
   /(breaking|backward[\s-]incompatib)/i,
   /(securit|vulnerability|exploit|patch|CVE-\d)/i,
   /(pric|pricing|limit|rate[\s-]limit|quota)/i,
@@ -14,7 +14,7 @@ const MEDIUM_IMPACT_PATTERNS = [
   /(sdk|library|package)\s+(update|release|version)/i,
   /(documentation|doc|guide|tutorial)\s+(add|updat|new)/i,
   /(preview|beta|early[\s-]access|experimental)/i,
-  /(clarif|clarification|behavior)/i,
+  /(behavior|behaviour)/i,
   /(integration|integrat)/i,
 ]
 
@@ -33,21 +33,33 @@ const NOISE_PATTERNS = [
   /(loading\.\.\.|please wait)/i,
 ]
 
-export function classifyChange(diffText: string): Significance {
-  const text = diffText.slice(0, 500)
+const SIGNIFICANCE_VALUES: Record<string, Significance> = {
+  high: "high",
+  medium: "medium",
+  low: "low",
+}
 
-  for (const [patterns, significance] of [
+function testPatterns(text: string, patterns: RegExp[]): boolean {
+  return patterns.some((p) => p.test(text))
+}
+
+export function classifyChange(diffText: string): Significance {
+  const additions = diffText.slice(0, 500)
+  const removals = diffText.split("--- removed\n")[1]?.split("+++")[0]?.slice(0, 500) || ""
+  const combined = additions + "\n" + removals
+
+  const checks: [RegExp[], Significance][] = [
     [HIGH_IMPACT_PATTERNS, "high"],
     [MEDIUM_IMPACT_PATTERNS, "medium"],
     [LOW_IMPACT_PATTERNS, "low"],
-  ] as const) {
-    for (const pattern of patterns) {
-      if (pattern.test(text)) return significance as Significance
-    }
+  ]
+
+  for (const [patterns, significance] of checks) {
+    if (testPatterns(combined, patterns)) return SIGNIFICANCE_VALUES[significance]
   }
 
   for (const pattern of NOISE_PATTERNS) {
-    if (pattern.test(text)) return "noise"
+    if (pattern.test(combined)) return "noise"
   }
 
   if (diffText.length > 200) return "medium"
