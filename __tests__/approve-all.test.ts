@@ -9,7 +9,7 @@ beforeAll(async () => {
     data: {
       provider: "Test",
       name: "Test Source",
-      url: "https://test.example.com",
+      url: `https://test-approve-all-${Date.now()}.example.com`,
       type: "changelog",
       category: "api",
       priority: "medium",
