@@ -26,7 +26,7 @@ const WHY_IT_MATTERS: Record<string, Record<string, string>> = {
   },
 }
 
-function getWhyItMatters(significance: string, changeType: string): string {
+export function getWhyItMatters(significance: string, changeType: string): string {
   return WHY_IT_MATTERS[significance]?.[changeType] ?? "Change detected — review to assess impact."
 }
 
@@ -34,12 +34,12 @@ export function escapeMarkdown(text: string): string {
   return text.replace(/([*_`#\[\]])/g, "\\$1")
 }
 
-function truncate(text: string, maxLength: number): string {
+export function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
   return text.slice(0, maxLength - 3) + "..."
 }
 
-function buildMarkdown(
+export function buildMarkdown(
   title: string,
   items: Array<{
     provider: string

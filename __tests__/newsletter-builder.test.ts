@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { escapeMarkdown } from "@/lib/newsletter-builder"
+import { escapeMarkdown, buildMarkdown, getWhyItMatters, truncate } from "@/lib/newsletter-builder"
 
 describe("escapeMarkdown", () => {
   it("escapes heading markers", () => {
@@ -38,5 +38,87 @@ describe("escapeMarkdown", () => {
 
   it("handles empty string", () => {
     expect(escapeMarkdown("")).toBe("")
+  })
+})
+
+describe("buildMarkdown", () => {
+  const baseItem = {
+    provider: "OpenAI",
+    sourceName: "Changelog",
+    sourceUrl: "https://openai.com/changelog",
+    summary: "Added new model GPT-5",
+    impactLevel: "high",
+    approved: true,
+  }
+
+  it("does not contain signalbrief.local", () => {
+    const md = buildMarkdown("Test Newsletter", [baseItem])
+    expect(md).not.toContain("signalbrief.local")
+  })
+
+  it("links to actual source URL when provided", () => {
+    const md = buildMarkdown("Test", [baseItem])
+    expect(md).toContain("[Source](https://openai.com/changelog)")
+  })
+
+  it("shows source name as plain text when URL is null", () => {
+    const item = { ...baseItem, sourceUrl: null }
+    const md = buildMarkdown("Test", [item])
+    expect(md).toContain("Source: Changelog")
+    expect(md).not.toContain("[Source](")
+  })
+
+  it("only includes approved items", () => {
+    const approved = { ...baseItem, approved: true }
+    const rejected = { ...baseItem, provider: "Anthropic", approved: false }
+    const md = buildMarkdown("Test", [approved, rejected])
+    expect(md).toContain("OpenAI")
+    expect(md).not.toContain("Anthropic")
+  })
+
+  it("groups items by impact level", () => {
+    const high = { ...baseItem, impactLevel: "high" }
+    const low = { ...baseItem, provider: "Google", impactLevel: "low" }
+    const md = buildMarkdown("Test", [high, low])
+    const highIdx = md.indexOf("## High Impact")
+    const lowIdx = md.indexOf("## Low Impact")
+    expect(highIdx).toBeLessThan(lowIdx)
+  })
+
+  it("shows placeholder when no items approved", () => {
+    const md = buildMarkdown("Test", [])
+    expect(md).toContain("No items approved yet")
+  })
+})
+
+describe("getWhyItMatters", () => {
+  it("returns high-impact new message", () => {
+    expect(getWhyItMatters("high", "new")).toContain("immediate review")
+  })
+
+  it("returns high-impact updated message", () => {
+    expect(getWhyItMatters("high", "updated")).toContain("Significant update")
+  })
+
+  it("returns medium-impact message", () => {
+    expect(getWhyItMatters("medium", "new")).toContain("worth reviewing")
+  })
+
+  it("returns low-impact message", () => {
+    expect(getWhyItMatters("low", "updated")).toContain("probably low impact")
+  })
+
+  it("returns fallback for unknown combination", () => {
+    expect(getWhyItMatters("unknown", "unknown")).toContain("review to assess impact")
+  })
+})
+
+describe("truncate", () => {
+  it("returns text unchanged when under limit", () => {
+    expect(truncate("short", 100)).toBe("short")
+  })
+
+  it("truncates long text with ellipsis", () => {
+    expect(truncate("a".repeat(100), 50)).toBe("a".repeat(47) + "...")
   })
 })
