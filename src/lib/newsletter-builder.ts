@@ -1,4 +1,5 @@
 import { prisma } from "./db"
+import { marked } from "marked"
 import type { Significance } from "./types"
 
 const SIGNIFICANCE_TO_IMPACT: Record<Significance, string> = {
@@ -93,56 +94,25 @@ export function buildMarkdown(
 }
 
 function buildHtml(markdown: string): string {
-  const lines = markdown.split("\n")
-  const htmlLines: string[] = []
-  htmlLines.push("<!DOCTYPE html>")
-  htmlLines.push('<html lang="en">')
-  htmlLines.push("<head>")
-  htmlLines.push('<meta charset="UTF-8">')
-  htmlLines.push('<meta name="viewport" content="width=device-width, initial-scale=1.0">')
-  htmlLines.push("<style>")
-  htmlLines.push("body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 700px; margin: 0 auto; padding: 2rem; color: #1a1a1a; line-height: 1.6; }")
-  htmlLines.push("h1 { border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }")
-  htmlLines.push("h2 { color: #374151; margin-top: 2rem; }")
-  htmlLines.push("h3 { color: #1f2937; }")
-  htmlLines.push("a { color: #2563eb; }")
-  htmlLines.push("hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }")
-  htmlLines.push("</style>")
-  htmlLines.push("</head>")
-  htmlLines.push("<body>")
-
-  for (const line of lines) {
-    if (line.startsWith("# ")) {
-      htmlLines.push(`<h1>${escapeHtml(line.slice(2))}</h1>`)
-    } else if (line.startsWith("## ")) {
-      htmlLines.push(`<h2>${escapeHtml(line.slice(3))}</h2>`)
-    } else if (line.startsWith("### ")) {
-      htmlLines.push(`<h3>${escapeHtml(line.slice(4))}</h3>`)
-    } else if (line.startsWith("[") && line.includes("](")) {
-      const match = line.match(/\[([^\]]+)\]\(([^)]+)\)/)
-      if (match) {
-        htmlLines.push(`<p><a href="${escapeHtml(match[2])}">${escapeHtml(match[1])}</a></p>`)
-      }
-    } else if (line.startsWith("*") && line.endsWith("*")) {
-      htmlLines.push(`<p><em>${escapeHtml(line.slice(1, -1))}</em></p>`)
-    } else if (line.trim() === "") {
-      htmlLines.push("")
-    } else {
-      htmlLines.push(`<p>${escapeHtml(line)}</p>`)
-    }
-  }
-
-  htmlLines.push("</body>")
-  htmlLines.push("</html>")
-  return htmlLines.join("\n")
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
+  const body = marked.parse(markdown) as string
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 700px; margin: 0 auto; padding: 2rem; color: #1a1a1a; line-height: 1.6; }
+h1 { border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
+h2 { color: #374151; margin-top: 2rem; }
+h3 { color: #1f2937; }
+a { color: #2563eb; }
+hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+${body}
+</body>
+</html>`
 }
 
 export async function buildNewsletter(runId: string) {
