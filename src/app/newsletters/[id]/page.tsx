@@ -81,10 +81,17 @@ export default function NewsletterDraftPage({
 
   const approveAll = async () => {
     if (!newsletter) return
-    for (const item of newsletter.items) {
-      if (!item.approved) {
-        await toggleApproval(item.id, false)
-      }
+    const res = await fetch(`/api/newsletters/${id}/items/approve-all`, {
+      method: "PATCH",
+    })
+    if (res.ok) {
+      setNewsletter((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          items: prev.items.map((item) => ({ ...item, approved: true })),
+        }
+      })
     }
   }
 
