@@ -9,6 +9,13 @@ export default async function Dashboard() {
   const activeCount = await prisma.source.count({ where: { active: true } })
   const latestRun = await prisma.run.findFirst({
     orderBy: { startedAt: "desc" },
+    select: {
+      id: true,
+      status: true,
+      sourcesChecked: true,
+      changesFound: true,
+      errorsCount: true,
+    },
   })
 
   return (
@@ -28,7 +35,9 @@ export default async function Dashboard() {
           <p className="text-sm mt-1">
             {latestRun ? (
               <Link href={`/runs/${latestRun.id}`} className="text-primary underline underline-offset-4 hover:text-primary/80">
-                {latestRun.status} — {latestRun.sourcesChecked} checked
+                {latestRun.status.replace(/_/g, " ")} — {latestRun.sourcesChecked} checked
+                {latestRun.changesFound > 0 ? `, ${latestRun.changesFound} change(s)` : ""}
+                {latestRun.errorsCount > 0 ? `, ${latestRun.errorsCount} error(s)` : ""}
               </Link>
             ) : (
               "No runs yet"

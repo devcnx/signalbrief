@@ -16,8 +16,17 @@ export async function GET(
             source: {
               select: { id: true, name: true, provider: true, url: true },
             },
+            changes: true,
           },
           orderBy: { fetchedAt: "desc" },
+        },
+        changes: {
+          include: {
+            source: {
+              select: { id: true, name: true, provider: true },
+            },
+          },
+          orderBy: { createdAt: "desc" },
         },
       },
     })
