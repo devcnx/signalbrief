@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/db"
 import { significanceColor } from "@/lib/significance-utils"
+import { buildChangePreview } from "@/lib/readability"
 import { Badge } from "@/components/ui/badge"
 import {
   Table,
@@ -201,7 +202,7 @@ export default async function RunDetailPage({
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">
-                  {change.changedText.slice(0, 300)}
+                  {buildChangePreview(change.changedText, 300)}
                 </p>
               </div>
             ))}

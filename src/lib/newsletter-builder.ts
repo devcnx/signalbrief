@@ -2,6 +2,7 @@ import { prisma } from "./db"
 import { marked } from "marked"
 import sanitizeHtml from "sanitize-html"
 import type { Significance } from "./types"
+import { buildReadableTitle, buildReadableSummary } from "./readability"
 
 const SIGNIFICANCE_TO_IMPACT: Record<Significance, string> = {
   high: "high",
@@ -149,12 +150,12 @@ export async function buildNewsletter(runId: string) {
   const items = run.changes.map((change) => ({
     sourceId: change.sourceId,
     detectedChangeId: change.id,
-    title: truncate(change.changedText, 80),
+    title: buildReadableTitle(change.changedText, change.source.name),
     provider: change.source.provider,
     category: change.source.name,
     sourceName: change.source.name,
     impactLevel: SIGNIFICANCE_TO_IMPACT[change.significance as Significance] || "low",
-    summary: change.changedText,
+    summary: buildReadableSummary(change.changedText),
     whyItMatters: getWhyItMatters(change.significance, change.changeType),
     sourceUrl: change.source.url,
     confidence: (change.significance === "high" || change.significance === "medium") ? "high" : "low" as const,

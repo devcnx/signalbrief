@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { significanceColor } from "@/lib/significance-utils"
+import { stripDiffMarkers, isRawDiff } from "@/lib/readability"
 
 type NewsletterItem = {
   id: string
@@ -172,7 +173,9 @@ export default function NewsletterDraftPage({
                       {item.confidence} confidence
                     </Badge>
                   </div>
-                  <p className="text-sm mt-2 whitespace-pre-wrap">{item.summary}</p>
+                  <p className="text-sm mt-2 whitespace-pre-wrap">
+                    {isRawDiff(item.summary) ? stripDiffMarkers(item.summary) : item.summary}
+                  </p>
                   <p className="text-xs text-muted-foreground mt-2">{item.whyItMatters}</p>
                   {item.recommendedAction && (
                     <p className="text-xs text-muted-foreground mt-1">
