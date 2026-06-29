@@ -1,3 +1,16 @@
+/**
+ * Diff format helpers for rendering human-readable content.
+ *
+ * Expected `changedText` format (from change-detector.ts):
+ *   --- removed
+ *   - <removed line>
+ *   +++ added
+ *   + <added line>
+ *
+ * Header-less diffs (lines starting with `- ` or `+ ` without section
+ * headers) are also supported as a fallback.
+ */
+
 const REMOVED_HEADER = "--- removed"
 const ADDED_HEADER = "+++ added"
 
@@ -86,6 +99,15 @@ export function buildChangePreview(changedText: string, maxLength: number = 200)
 export type DiffSection = {
   type: "removed" | "added"
   lines: string[]
+}
+
+const SECTION_HEADER_RE = /^(--- removed|\+\+\+ added)/m
+const REMOVED_LINE_RE = /^- /m
+const ADDED_LINE_RE = /^\+ /m
+
+export function isRawDiff(text: string): boolean {
+  if (SECTION_HEADER_RE.test(text)) return true
+  return REMOVED_LINE_RE.test(text) && ADDED_LINE_RE.test(text)
 }
 
 export function groupDiffSections(changedText: string): DiffSection[] {

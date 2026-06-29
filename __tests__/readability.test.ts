@@ -6,6 +6,7 @@ import {
   buildReadableSummary,
   buildChangePreview,
   groupDiffSections,
+  isRawDiff,
 } from "@/lib/readability"
 
 describe("parseChangedText", () => {
@@ -234,5 +235,39 @@ describe("groupDiffSections", () => {
     expect(sections[0].lines).toEqual(["removed without header"])
     expect(sections[1].type).toBe("added")
     expect(sections[1].lines).toEqual(["added without header"])
+  })
+})
+
+describe("isRawDiff", () => {
+  it("detects text with section headers", () => {
+    expect(isRawDiff("--- removed\n- old\n+++ added\n+ new")).toBe(true)
+  })
+
+  it("detects text with only removed header", () => {
+    expect(isRawDiff("--- removed\n- old line")).toBe(true)
+  })
+
+  it("detects text with only added header", () => {
+    expect(isRawDiff("+++ added\n+ new line")).toBe(true)
+  })
+
+  it("detects header-less diffs with both markers", () => {
+    expect(isRawDiff("- removed\n+ added")).toBe(true)
+  })
+
+  it("rejects plain text with only bullet points", () => {
+    expect(isRawDiff("- item one\n- item two")).toBe(false)
+  })
+
+  it("rejects plain text with no markers", () => {
+    expect(isRawDiff("This is a normal summary")).toBe(false)
+  })
+
+  it("rejects empty string", () => {
+    expect(isRawDiff("")).toBe(false)
+  })
+
+  it("rejects text with + in URLs but no diff markers", () => {
+    expect(isRawDiff("See https://example.com/foo+bar")).toBe(false)
   })
 })

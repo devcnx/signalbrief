@@ -5,16 +5,7 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { significanceColor } from "@/lib/significance-utils"
-import { stripDiffMarkers } from "@/lib/readability"
-
-const SECTION_HEADER_RE = /^(--- removed|\+\+\+ added)/m
-const REMOVED_LINE_RE = /^- /m
-const ADDED_LINE_RE = /^\+ /m
-
-function looksLikeRawDiff(text: string): boolean {
-  if (SECTION_HEADER_RE.test(text)) return true
-  return REMOVED_LINE_RE.test(text) && ADDED_LINE_RE.test(text)
-}
+import { stripDiffMarkers, isRawDiff } from "@/lib/readability"
 
 type NewsletterItem = {
   id: string
@@ -183,7 +174,7 @@ export default function NewsletterDraftPage({
                     </Badge>
                   </div>
                   <p className="text-sm mt-2 whitespace-pre-wrap">
-                    {looksLikeRawDiff(item.summary) ? stripDiffMarkers(item.summary) : item.summary}
+                    {isRawDiff(item.summary) ? stripDiffMarkers(item.summary) : item.summary}
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">{item.whyItMatters}</p>
                   {item.recommendedAction && (
