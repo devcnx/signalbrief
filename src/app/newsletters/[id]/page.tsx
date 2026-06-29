@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { significanceColor } from "@/lib/significance-utils"
 import { stripDiffMarkers } from "@/lib/readability"
 
-const DIFF_MARKER_RE = /^(--- removed|\+\+\+ added|- |\+ )/m
+const DIFF_MARKER_RE = /^(--- removed|\+\+\+ added)/m
 
 function looksLikeRawDiff(text: string): boolean {
   return DIFF_MARKER_RE.test(text)

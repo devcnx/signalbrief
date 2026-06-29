@@ -2,6 +2,7 @@ const REMOVED_HEADER = "--- removed"
 const ADDED_HEADER = "+++ added"
 
 function truncate(text: string, maxLength: number): string {
+  if (maxLength < 4) return text
   if (text.length <= maxLength) return text
   return text.slice(0, Math.max(0, maxLength - 3)) + "..."
 }
