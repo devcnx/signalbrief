@@ -1,9 +1,8 @@
 import { prisma } from "./db"
 import { marked } from "marked"
 import sanitizeHtml from "sanitize-html"
-import type { Significance, SummarizationInput, Priority } from "./types"
-import { summarizeChange } from "./summarizer"
-import { getWhyItMatters } from "./significance-utils"
+import type { Significance } from "./types"
+import { buildReadableTitle, buildReadableSummary } from "./readability"
 
 const SIGNIFICANCE_TO_IMPACT: Record<Significance, string> = {
   high: "high",
@@ -12,7 +11,27 @@ const SIGNIFICANCE_TO_IMPACT: Record<Significance, string> = {
   noise: "low",
 }
 
-export { getWhyItMatters } from "./significance-utils"
+const WHY_IT_MATTERS: Record<string, Record<string, string>> = {
+  high: {
+    new: "New high-impact content — requires immediate review.",
+    updated: "Significant update detected — review recommended.",
+    removed: "High-impact content removed — verify intentionality.",
+  },
+  medium: {
+    new: "New content detected — worth reviewing.",
+    updated: "Moderate change detected — review when convenient.",
+    removed: "Content removed — check for breaking changes.",
+  },
+  low: {
+    new: "Minor addition detected — likely low impact.",
+    updated: "Minor update detected — probably low impact.",
+    removed: "Minor content removed — unlikely to affect workflows.",
+  },
+}
+
+export function getWhyItMatters(significance: string, changeType: string): string {
+  return WHY_IT_MATTERS[significance]?.[changeType] ?? "Change detected — review to assess impact."
+}
 
 export function escapeMarkdown(text: string): string {
   return text.replace(/([*_`#\[\]])/g, "\\$1")
@@ -111,7 +130,7 @@ export async function buildNewsletter(runId: string) {
     include: {
       changes: {
         include: {
-          source: { select: { name: true, provider: true, url: true, category: true, priority: true } },
+          source: { select: { name: true, provider: true, url: true } },
         },
         where: { significance: { not: "noise" } },
       },
@@ -128,35 +147,20 @@ export async function buildNewsletter(runId: string) {
   const dateStr = now.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
   const title = `AI Documentation Update — ${dateStr}`
 
-  const items = await Promise.all(
-    run.changes.map(async (change) => {
-      const input: SummarizationInput = {
-        provider: change.source.provider,
-        sourceName: change.source.name,
-        sourceUrl: change.source.url,
-        category: change.source.category,
-        priority: change.source.priority as Priority,
-        changedText: change.changedText,
-      }
-
-      const draft = await summarizeChange(input)
-
-      return {
-        sourceId: change.sourceId,
-        detectedChangeId: change.id,
-        title: draft.title,
-        provider: draft.provider,
-        category: draft.category,
-        sourceName: change.source.name,
-        impactLevel: SIGNIFICANCE_TO_IMPACT[change.significance as Significance] || draft.impactLevel,
-        summary: draft.summary,
-        whyItMatters: draft.whyItMatters,
-        sourceUrl: draft.sourceUrl,
-        confidence: draft.confidence,
-        approved: false,
-      }
-    })
-  )
+  const items = run.changes.map((change) => ({
+    sourceId: change.sourceId,
+    detectedChangeId: change.id,
+    title: buildReadableTitle(change.changedText, change.source.name),
+    provider: change.source.provider,
+    category: change.source.name,
+    sourceName: change.source.name,
+    impactLevel: SIGNIFICANCE_TO_IMPACT[change.significance as Significance] || "low",
+    summary: buildReadableSummary(change.changedText),
+    whyItMatters: getWhyItMatters(change.significance, change.changeType),
+    sourceUrl: change.source.url,
+    confidence: (change.significance === "high" || change.significance === "medium") ? "high" : "low" as const,
+    approved: false,
+  }))
 
   const markdown = buildMarkdown(title, items)
   const html = buildHtml(markdown)
