@@ -53,14 +53,26 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
+  const url = new URL(request.url)
+  const permanent = url.searchParams.get("permanent")?.toLowerCase() === "true"
 
   const existing = await prisma.source.findUnique({ where: { id } })
   if (!existing) {
     return NextResponse.json({ error: "Source not found" }, { status: 404 })
+  }
+
+  if (permanent) {
+    try {
+      await prisma.source.delete({ where: { id } })
+      return NextResponse.json({ deleted: true, id })
+    } catch (err) {
+      console.error("Error deleting source permanently:", err)
+      return NextResponse.json({ error: "Failed to delete source" }, { status: 500 })
+    }
   }
 
   try {
