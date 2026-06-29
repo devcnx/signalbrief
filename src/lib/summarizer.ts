@@ -118,14 +118,17 @@ async function callOpenAICompatible(
     "Content-Type": "application/json",
   }
 
-  if (provider === "anthropic") {
+  const isAnthropic = provider === "anthropic"
+  const endpoint = isAnthropic ? "/messages" : "/chat/completions"
+
+  if (isAnthropic) {
     headers["x-api-key"] = apiKey || ""
     headers["anthropic-version"] = "2023-06-01"
   } else {
     headers["Authorization"] = `Bearer ${apiKey || ""}`
   }
 
-  const body = provider === "anthropic"
+  const body = isAnthropic
     ? JSON.stringify({
         model: config.model,
         max_tokens: 1024,
@@ -137,11 +140,20 @@ async function callOpenAICompatible(
         messages: [{ role: "user", content: prompt }],
       })
 
-  const res = await fetch(`${config.baseUrl}/chat/completions`, {
-    method: "POST",
-    headers,
-    body,
-  })
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 30000)
+
+  let res: Response
+  try {
+    res = await fetch(`${config.baseUrl}${endpoint}`, {
+      method: "POST",
+      headers,
+      body,
+      signal: controller.signal,
+    })
+  } finally {
+    clearTimeout(timeout)
+  }
 
   if (!res.ok) {
     const text = await res.text().catch(() => "")
@@ -151,7 +163,7 @@ async function callOpenAICompatible(
   const data = await res.json()
 
   let content: string
-  if (provider === "anthropic") {
+  if (isAnthropic) {
     content = data.content?.[0]?.text || ""
   } else {
     content = data.choices?.[0]?.message?.content || ""
@@ -205,8 +217,11 @@ export async function summarizeChange(input: SummarizationInput): Promise<Newsle
     const raw = await callOpenAICompatible(provider, prompt)
     const validated = validateOutput(raw, input)
     if (validated) return validated
+    console.warn(`[summarizer] AI response from ${provider} failed validation — using fallback`)
     return noAiFallback(input)
-  } catch {
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err)
+    console.warn(`[summarizer] AI provider ${provider} failed (${reason}) — using fallback`)
     return noAiFallback(input)
   }
 }

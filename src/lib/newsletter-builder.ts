@@ -1,7 +1,7 @@
 import { prisma } from "./db"
 import { marked } from "marked"
 import sanitizeHtml from "sanitize-html"
-import type { Significance, SummarizationInput } from "./types"
+import type { Significance, SummarizationInput, Priority } from "./types"
 import { summarizeChange } from "./summarizer"
 import { getWhyItMatters } from "./significance-utils"
 
@@ -111,7 +111,7 @@ export async function buildNewsletter(runId: string) {
     include: {
       changes: {
         include: {
-          source: { select: { name: true, provider: true, url: true } },
+          source: { select: { name: true, provider: true, url: true, category: true, priority: true } },
         },
         where: { significance: { not: "noise" } },
       },
@@ -134,8 +134,8 @@ export async function buildNewsletter(runId: string) {
         provider: change.source.provider,
         sourceName: change.source.name,
         sourceUrl: change.source.url,
-        category: change.source.name,
-        priority: "medium",
+        category: change.source.category,
+        priority: change.source.priority as Priority,
         changedText: change.changedText,
       }
 
