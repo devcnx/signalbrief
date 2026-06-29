@@ -116,8 +116,10 @@ describe("Source DELETE API — soft deactivate", () => {
 
 describe("Source DELETE API — permanent delete with cascade", () => {
   let permSourceId: string
+  let permRunId: string
   let permSnapshotId: string
   let permChangeId: string
+  let permNewsletterId: string
   let permNewsletterItemId: string
 
   beforeAll(async () => {
@@ -136,6 +138,7 @@ describe("Source DELETE API — permanent delete with cascade", () => {
     const run = await prisma.run.create({
       data: { status: "completed", sourcesChecked: 1 },
     })
+    permRunId = run.id
 
     const snapshot = await prisma.snapshot.create({
       data: {
@@ -151,7 +154,7 @@ describe("Source DELETE API — permanent delete with cascade", () => {
     const change = await prisma.detectedChange.create({
       data: {
         sourceId: permSourceId,
-        runId: run.id,
+        runId: permRunId,
         snapshotId: permSnapshotId,
         changeType: "new",
         significance: "high",
@@ -162,7 +165,7 @@ describe("Source DELETE API — permanent delete with cascade", () => {
 
     const newsletter = await prisma.newsletter.create({
       data: {
-        runId: run.id,
+        runId: permRunId,
         title: "Perm Delete Newsletter",
         markdownBody: "# Perm Delete",
         status: "draft",
@@ -186,25 +189,15 @@ describe("Source DELETE API — permanent delete with cascade", () => {
       },
       include: { items: true },
     })
+    permNewsletterId = newsletter.id
     permNewsletterItemId = newsletter.items[0].id
-
-    // Clean up the run after — it has no Source cascade, so it lingers
-    // We'll delete it in afterAll via the run ID stored above
   })
 
   afterAll(async () => {
     // The source and all related data (snapshots, changes, newsletter items)
-    // are gone via cascade. The Newsletter and Run still exist — clean them up.
-    const runs = await prisma.run.findMany({
-      where: { snapshots: { none: {} } },
-    })
-    for (const r of runs) {
-      const newsletter = await prisma.newsletter.findUnique({ where: { runId: r.id } })
-      if (newsletter) {
-        await prisma.newsletter.delete({ where: { id: newsletter.id } }).catch(() => {})
-      }
-      await prisma.run.delete({ where: { id: r.id } }).catch(() => {})
-    }
+    // are gone via cascade. The Newsletter and Run still exist — clean them up directly.
+    await prisma.newsletter.delete({ where: { id: permNewsletterId } }).catch(() => {})
+    await prisma.run.delete({ where: { id: permRunId } }).catch(() => {})
   })
 
   it("DELETE /api/sources/[id]?permanent=true removes source and cascades", async () => {
