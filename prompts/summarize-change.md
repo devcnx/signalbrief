@@ -23,14 +23,14 @@ Changed source text:
 
 Return valid JSON only using this schema:
 {
-  "title": string,
-  "provider": string,
-  "category": string,
-  "impactLevel": "high" | "medium" | "low",
-  "summary": string,
-  "whyItMatters": string,
-  "recommendedAction": string | null,
-  "sourceUrl": string,
-  "confidence": "high" | "medium" | "low",
-  "needsReview": boolean
+  "title": "Short title for the update",
+  "provider": "Provider name",
+  "category": "api",
+  "impactLevel": "high",
+  "summary": "One to three sentence factual summary.",
+  "whyItMatters": "Practical implication, clearly grounded or labeled as inference.",
+  "recommendedAction": "Optional action for the reader",
+  "sourceUrl": "Original source URL",
+  "confidence": "high",
+  "needsReview": true
 }

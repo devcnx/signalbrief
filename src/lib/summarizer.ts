@@ -1,10 +1,9 @@
 import fs from "fs/promises"
 import path from "path"
 import type { SummarizationInput, NewsletterItemDraft, Summarizer } from "./types"
-import { buildReadableTitle, buildReadableSummary } from "./readability"
-import { getWhyItMatters } from "./newsletter-builder"
+import { buildReadableTitle, buildReadableSummary, parseChangedText } from "./readability"
+import { getWhyItMatters } from "./significance-utils"
 import { classifyChange } from "./change-classifier"
-import { parseChangedText } from "./readability"
 
 const PROMPT_TEMPLATE_PATH = path.join(process.cwd(), "prompts", "summarize-change.md")
 
@@ -27,8 +26,10 @@ const PROVIDER_CONFIG: Record<string, { baseUrl: string; model: string; envKey: 
 }
 
 function getProvider(): string | null {
-  const provider = process.env.AI_PROVIDER?.toLowerCase().trim()
-  if (!provider || provider === "none" || provider === "") return null
+  const raw = process.env.AI_PROVIDER
+  if (!raw) return null
+  const provider = raw.toLowerCase().trim()
+  if (!provider || provider === "none") return null
   if (!(provider in PROVIDER_CONFIG)) return null
   return provider
 }

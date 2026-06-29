@@ -211,6 +211,24 @@ describe("validateOutput", () => {
     expect(result!.title).toBeTruthy()
     expect(result!.title.length).toBeGreaterThan(0)
   })
+
+  it("AI response category overrides input category", () => {
+    const raw = { summary: "test", category: "model" }
+    const result = validateOutput(raw, baseInput)
+    expect(result!.category).toBe("model")
+  })
+
+  it("input sourceUrl is used (not overridable by AI)", () => {
+    const raw = { summary: "test", sourceUrl: "https://other.com" }
+    const result = validateOutput(raw, baseInput)
+    expect(result!.sourceUrl).toBe("https://platform.openai.com/docs/changelog")
+  })
+
+  it("input provider is used (not overridable by AI)", () => {
+    const raw = { summary: "test", provider: "Anthropic" }
+    const result = validateOutput(raw, baseInput)
+    expect(result!.provider).toBe("OpenAI")
+  })
 })
 
 describe("noAiFallback", () => {
@@ -253,5 +271,29 @@ describe("noAiFallback", () => {
     }
     const result = noAiFallback(minorInput)
     expect(result.impactLevel).toBe("low")
+  })
+})
+
+describe("fillTemplate edge cases", () => {
+  it("renders empty audience array as technical default", () => {
+    const template = "Audience: [{{audience}}]"
+    const input = { ...baseInput, audience: [] as string[] }
+    const result = fillTemplate(template, input)
+    expect(result).toBe("Audience: [technical]")
+  })
+
+  it("handles special characters in changedText", () => {
+    const template = "Changed: {{changedText}}"
+    const input = { ...baseInput, changedText: "Line with <html> & \"quotes\" and 'apostrophes'" }
+    const result = fillTemplate(template, input)
+    expect(result).toContain("<html>")
+    expect(result).toContain("& \"quotes\"")
+  })
+
+  it("handles unicode in changedText", () => {
+    const template = "Changed: {{changedText}}"
+    const input = { ...baseInput, changedText: "日本語のテスト 🚀" }
+    const result = fillTemplate(template, input)
+    expect(result).toContain("日本語のテスト 🚀")
   })
 })

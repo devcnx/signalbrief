@@ -3,6 +3,7 @@ import { marked } from "marked"
 import sanitizeHtml from "sanitize-html"
 import type { Significance, SummarizationInput } from "./types"
 import { summarizeChange } from "./summarizer"
+import { getWhyItMatters } from "./significance-utils"
 
 const SIGNIFICANCE_TO_IMPACT: Record<Significance, string> = {
   high: "high",
@@ -11,27 +12,7 @@ const SIGNIFICANCE_TO_IMPACT: Record<Significance, string> = {
   noise: "low",
 }
 
-const WHY_IT_MATTERS: Record<string, Record<string, string>> = {
-  high: {
-    new: "New high-impact content — requires immediate review.",
-    updated: "Significant update detected — review recommended.",
-    removed: "High-impact content removed — verify intentionality.",
-  },
-  medium: {
-    new: "New content detected — worth reviewing.",
-    updated: "Moderate change detected — review when convenient.",
-    removed: "Content removed — check for breaking changes.",
-  },
-  low: {
-    new: "Minor addition detected — likely low impact.",
-    updated: "Minor update detected — probably low impact.",
-    removed: "Minor content removed — unlikely to affect workflows.",
-  },
-}
-
-export function getWhyItMatters(significance: string, changeType: string): string {
-  return WHY_IT_MATTERS[significance]?.[changeType] ?? "Change detected — review to assess impact."
-}
+export { getWhyItMatters } from "./significance-utils"
 
 export function escapeMarkdown(text: string): string {
   return text.replace(/([*_`#\[\]])/g, "\\$1")
