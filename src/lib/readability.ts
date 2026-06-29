@@ -14,6 +14,7 @@
 const REMOVED_HEADER = "--- removed"
 const ADDED_HEADER = "+++ added"
 
+// Returns text as-is when maxLength < 4 to avoid a broken ellipsis on tiny limits.
 function truncate(text: string, maxLength: number): string {
   if (maxLength < 4) return text
   if (text.length <= maxLength) return text
@@ -52,6 +53,16 @@ export function parseChangedText(changedText: string): ParsedDiff {
   return { additions, removals }
 }
 
+// Best-effort cleanup for unrecognised formats: strips any remaining diff markers.
+function stripResidualMarkers(changedText: string): string {
+  return changedText
+    .replace(/^--- removed\n?/m, "")
+    .replace(/^\+\+\+ added\n?/m, "")
+    .replace(/^- /gm, "")
+    .replace(/^\+ /gm, "")
+    .trim()
+}
+
 export function stripDiffMarkers(changedText: string): string {
   const { additions, removals } = parseChangedText(changedText)
 
@@ -64,12 +75,7 @@ export function stripDiffMarkers(changedText: string): string {
   if (removals.length > 0) {
     return `Removed:\n${removals.join("\n")}`
   }
-  return changedText
-    .replace(/^--- removed\n?/m, "")
-    .replace(/^\+\+\+ added\n?/m, "")
-    .replace(/^- /gm, "")
-    .replace(/^\+ /gm, "")
-    .trim()
+  return stripResidualMarkers(changedText)
 }
 
 export function buildReadableTitle(changedText: string, sourceName: string): string {

@@ -202,7 +202,7 @@ export default async function RunDetailPage({
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">
-                  {buildChangePreview(change.changedText)}
+                  {buildChangePreview(change.changedText, 300)}
                 </p>
               </div>
             ))}
