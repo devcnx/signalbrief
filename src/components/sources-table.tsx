@@ -182,33 +182,21 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
     }
   }
 
-  async function handleDelete(source: Source, permanent: boolean): Promise<boolean> {
+  async function handleDelete(source: Source) {
     setErrorMessage(null)
     try {
-      const url = permanent
-        ? `/api/sources/${source.id}?permanent=true`
-        : `/api/sources/${source.id}`
-      const res = await fetch(url, { method: "DELETE" })
+      const res = await fetch(`/api/sources/${source.id}`, {
+        method: "DELETE",
+      })
       if (res.ok) {
-        if (permanent) {
-          setSources((prev) => prev.filter((s) => s.id !== source.id))
-        } else {
-          const updated = await res.json()
-          setSources((prev) => prev.map((s) => (s.id === source.id ? updated : s)))
-        }
+        const updated = await res.json()
+        setSources((prev) => prev.map((s) => (s.id === source.id ? updated : s)))
         router.refresh()
-        return true
       } else {
-        setErrorMessage(
-          permanent ? "Failed to delete source" : "Failed to deactivate source"
-        )
-        return false
+        setErrorMessage("Failed to deactivate source")
       }
     } catch {
-      setErrorMessage(
-        permanent ? "Network error — failed to delete source" : "Network error — failed to deactivate source"
-      )
-      return false
+      setErrorMessage("Network error — failed to deactivate source")
     }
   }
 
@@ -333,7 +321,7 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
                       <Button variant="ghost" size="icon" onClick={() => openEdit(source)} disabled={saving} aria-label={`Edit ${source.name}`}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(source)} disabled={saving} aria-label={`Remove ${source.name}`}>
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(source)} disabled={saving} aria-label={`Deactivate ${source.name}`}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -368,28 +356,14 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
       <Dialog open={deleteTarget !== null} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Remove Source</DialogTitle>
+            <DialogTitle>Deactivate Source</DialogTitle>
             <DialogDescription>
-              Choose how to remove &quot;{deleteTarget?.name}&quot;. Deactivating keeps all history for reference. Deleting permanently removes the source and all its snapshots, changes, and newsletter items.
+              Are you sure you want to deactivate "{deleteTarget?.name}"? This will set it to inactive but preserve its history.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-col gap-2 sm:justify-end">
+          <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>
               Cancel
-            </Button>
-            <Button
-              variant="secondary"
-              disabled={saving}
-              onClick={async () => {
-                if (deleteTarget) {
-                  setSaving(true)
-                  const ok = await handleDelete(deleteTarget, false)
-                  setSaving(false)
-                  if (ok) setDeleteTarget(null)
-                }
-              }}
-            >
-              {saving ? "Deactivating..." : "Deactivate (keep data)"}
             </Button>
             <Button
               variant="destructive"
@@ -397,13 +371,13 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
               onClick={async () => {
                 if (deleteTarget) {
                   setSaving(true)
-                  const ok = await handleDelete(deleteTarget, true)
+                  await handleDelete(deleteTarget)
                   setSaving(false)
-                  if (ok) setDeleteTarget(null)
+                  setDeleteTarget(null)
                 }
               }}
             >
-              {saving ? "Deleting..." : "Delete permanently"}
+              {saving ? "Deactivating..." : "Deactivate"}
             </Button>
           </DialogFooter>
         </DialogContent>

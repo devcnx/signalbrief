@@ -85,8 +85,6 @@ The prefix matches the branch prefix (first segment before the slash). Commit de
 
 **Merge strategy:** PRs are merged using squash. The PR title must follow the same `prefix: description` format as commits. The PR number is automatically appended by GitHub.
 
-**Branch protection:** `main` requires a PR before merge, no force pushes, no deletions. Conversations on PRs must be resolved before merging — address or explicitly dismiss all review comments before squash merging.
-
 **Examples:**
 
 Single task:
