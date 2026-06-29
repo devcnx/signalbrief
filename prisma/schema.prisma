@@ -62,7 +62,7 @@ model Snapshot {
   cleanedContentPath String?
   errorMessage       String?
 
-  source  Source @relation(fields: [sourceId], references: [id])
+  source  Source @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   run     Run    @relation(fields: [runId], references: [id])
   changes DetectedChange[]
 
@@ -83,9 +83,9 @@ model DetectedChange {
   alreadyIncluded Boolean  @default(false)
   createdAt       DateTime @default(now())
 
-  source   Source   @relation(fields: [sourceId], references: [id])
+  source   Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   run      Run      @relation(fields: [runId], references: [id])
-  snapshot Snapshot @relation(fields: [snapshotId], references: [id])
+  snapshot Snapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
   item     NewsletterItem?
 
   @@index([sourceId])
@@ -132,8 +132,8 @@ model NewsletterItem {
   createdAt        DateTime @default(now())
 
   newsletter     Newsletter     @relation(fields: [newsletterId], references: [id])
-  source         Source         @relation(fields: [sourceId], references: [id])
-  detectedChange DetectedChange @relation(fields: [detectedChangeId], references: [id])
+  source         Source         @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  detectedChange DetectedChange @relation(fields: [detectedChangeId], references: [id], onDelete: Cascade)
 
   @@index([newsletterId])
   @@index([sourceId])
