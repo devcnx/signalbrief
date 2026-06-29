@@ -6,6 +6,7 @@ let runId: string
 let snapshotId: string
 let changeId: string
 let newsletterId: string
+let newsletterItemId: string
 
 beforeAll(async () => {
   const source = await prisma.source.create({
@@ -72,8 +73,10 @@ beforeAll(async () => {
         ],
       },
     },
+    include: { items: true },
   })
   newsletterId = newsletter.id
+  newsletterItemId = newsletter.items[0].id
 })
 
 afterAll(async () => {
@@ -111,6 +114,10 @@ describe("Source DELETE API — soft deactivate", () => {
     expect(snapshot).not.toBeNull()
     const change = await prisma.detectedChange.findUnique({ where: { id: changeId } })
     expect(change).not.toBeNull()
+    const newsletter = await prisma.newsletter.findUnique({ where: { id: newsletterId } })
+    expect(newsletter).not.toBeNull()
+    const item = await prisma.newsletterItem.findUnique({ where: { id: newsletterItemId } })
+    expect(item).not.toBeNull()
   })
 })
 

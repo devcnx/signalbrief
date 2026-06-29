@@ -182,7 +182,7 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
     }
   }
 
-  async function handleDelete(source: Source, permanent: boolean) {
+  async function handleDelete(source: Source, permanent: boolean): Promise<boolean> {
     setErrorMessage(null)
     try {
       const url = permanent
@@ -197,15 +197,18 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
           setSources((prev) => prev.map((s) => (s.id === source.id ? updated : s)))
         }
         router.refresh()
+        return true
       } else {
         setErrorMessage(
           permanent ? "Failed to delete source" : "Failed to deactivate source"
         )
+        return false
       }
     } catch {
       setErrorMessage(
         permanent ? "Network error — failed to delete source" : "Network error — failed to deactivate source"
       )
+      return false
     }
   }
 
@@ -380,9 +383,9 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
               onClick={async () => {
                 if (deleteTarget) {
                   setSaving(true)
-                  await handleDelete(deleteTarget, false)
+                  const ok = await handleDelete(deleteTarget, false)
                   setSaving(false)
-                  setDeleteTarget(null)
+                  if (ok) setDeleteTarget(null)
                 }
               }}
             >
@@ -394,9 +397,9 @@ export function SourcesTable({ sources: initialSources }: { sources: Source[] })
               onClick={async () => {
                 if (deleteTarget) {
                   setSaving(true)
-                  await handleDelete(deleteTarget, true)
+                  const ok = await handleDelete(deleteTarget, true)
                   setSaving(false)
-                  setDeleteTarget(null)
+                  if (ok) setDeleteTarget(null)
                 }
               }}
             >
