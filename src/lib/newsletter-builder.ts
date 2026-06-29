@@ -1,8 +1,8 @@
 import { prisma } from "./db"
 import { marked } from "marked"
 import sanitizeHtml from "sanitize-html"
-import type { Significance } from "./types"
-import { buildReadableTitle, buildReadableSummary } from "./readability"
+import type { Significance, SummarizationInput } from "./types"
+import { summarizeChange } from "./summarizer"
 
 const SIGNIFICANCE_TO_IMPACT: Record<Significance, string> = {
   high: "high",
@@ -147,20 +147,35 @@ export async function buildNewsletter(runId: string) {
   const dateStr = now.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
   const title = `AI Documentation Update — ${dateStr}`
 
-  const items = run.changes.map((change) => ({
-    sourceId: change.sourceId,
-    detectedChangeId: change.id,
-    title: buildReadableTitle(change.changedText, change.source.name),
-    provider: change.source.provider,
-    category: change.source.name,
-    sourceName: change.source.name,
-    impactLevel: SIGNIFICANCE_TO_IMPACT[change.significance as Significance] || "low",
-    summary: buildReadableSummary(change.changedText),
-    whyItMatters: getWhyItMatters(change.significance, change.changeType),
-    sourceUrl: change.source.url,
-    confidence: (change.significance === "high" || change.significance === "medium") ? "high" : "low" as const,
-    approved: false,
-  }))
+  const items = await Promise.all(
+    run.changes.map(async (change) => {
+      const input: SummarizationInput = {
+        provider: change.source.provider,
+        sourceName: change.source.name,
+        sourceUrl: change.source.url,
+        category: change.source.name,
+        priority: "medium",
+        changedText: change.changedText,
+      }
+
+      const draft = await summarizeChange(input)
+
+      return {
+        sourceId: change.sourceId,
+        detectedChangeId: change.id,
+        title: draft.title,
+        provider: draft.provider,
+        category: draft.category,
+        sourceName: change.source.name,
+        impactLevel: SIGNIFICANCE_TO_IMPACT[change.significance as Significance] || draft.impactLevel,
+        summary: draft.summary,
+        whyItMatters: draft.whyItMatters,
+        sourceUrl: draft.sourceUrl,
+        confidence: draft.confidence,
+        approved: false,
+      }
+    })
+  )
 
   const markdown = buildMarkdown(title, items)
   const html = buildHtml(markdown)
