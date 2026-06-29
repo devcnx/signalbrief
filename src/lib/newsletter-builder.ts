@@ -150,7 +150,7 @@ export async function buildNewsletter(runId: string) {
   const items = run.changes.map((change) => ({
     sourceId: change.sourceId,
     detectedChangeId: change.id,
-    title: buildReadableTitle(change.changedText, change.source.name, change.changeType),
+    title: buildReadableTitle(change.changedText, change.source.name),
     provider: change.source.provider,
     category: change.source.name,
     sourceName: change.source.name,

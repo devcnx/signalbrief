@@ -59,7 +59,7 @@ export function stripDiffMarkers(changedText: string): string {
     .trim()
 }
 
-export function buildReadableTitle(changedText: string, sourceName: string, _changeType: string): string {
+export function buildReadableTitle(changedText: string, sourceName: string): string {
   const { additions, removals } = parseChangedText(changedText)
 
   const pick = (lines: string[]): string => {

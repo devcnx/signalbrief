@@ -56,6 +56,13 @@ describe("stripDiffMarkers", () => {
     expect(result).not.toContain("+ ")
   })
 
+  it("includes Updated and Previously labels for mixed additions and removals", () => {
+    const changedText = "--- removed\n- old text\n+++ added\n+ new text"
+    const result = stripDiffMarkers(changedText)
+    expect(result).toContain("Updated:")
+    expect(result).toContain("Previously:")
+  })
+
   it("returns additions only when no removals", () => {
     const changedText = "+++ added\n+ new content"
     const result = stripDiffMarkers(changedText)
@@ -92,32 +99,32 @@ describe("stripDiffMarkers", () => {
 describe("buildReadableTitle", () => {
   it("uses first addition for new changes", () => {
     const changedText = "+++ added\n+ New GPT-5 model released\n+ More details"
-    const title = buildReadableTitle(changedText, "OpenAI Changelog", "new")
+    const title = buildReadableTitle(changedText, "OpenAI Changelog")
     expect(title).toBe("New GPT-5 model released")
   })
 
   it("uses first removal when no additions", () => {
     const changedText = "--- removed\n- Deprecated API endpoint"
-    const title = buildReadableTitle(changedText, "Source", "updated")
+    const title = buildReadableTitle(changedText, "Source")
     expect(title).toBe("Deprecated API endpoint")
   })
 
   it("truncates long titles", () => {
     const longLine = "A".repeat(100)
     const changedText = `+++ added\n+ ${longLine}`
-    const title = buildReadableTitle(changedText, "Source", "new")
+    const title = buildReadableTitle(changedText, "Source")
     expect(title.length).toBe(80)
     expect(title.endsWith("...")).toBe(true)
   })
 
   it("falls back to source name when no parseable content", () => {
-    const title = buildReadableTitle("", "My Source", "new")
+    const title = buildReadableTitle("", "My Source")
     expect(title).toBe("My Source")
   })
 
   it("prefers additions over removals for updated changes", () => {
     const changedText = "--- removed\n- old\n+++ added\n+ new"
-    const title = buildReadableTitle(changedText, "Source", "updated")
+    const title = buildReadableTitle(changedText, "Source")
     expect(title).toBe("new")
   })
 })
@@ -168,14 +175,14 @@ describe("buildChangePreview", () => {
 })
 
 describe("buildReadableTitle edge cases", () => {
-  it("falls back to removals when changeType is new but only removals exist", () => {
+  it("falls back to removals when only removals exist", () => {
     const changedText = "--- removed\n- Deprecated endpoint"
-    const title = buildReadableTitle(changedText, "Source", "new")
+    const title = buildReadableTitle(changedText, "Source")
     expect(title).toBe("Deprecated endpoint")
   })
 
-  it("falls back to source name when changeType is new but no content", () => {
-    const title = buildReadableTitle("", "My Source", "new")
+  it("falls back to source name when no content", () => {
+    const title = buildReadableTitle("", "My Source")
     expect(title).toBe("My Source")
   })
 })
@@ -222,6 +229,10 @@ describe("groupDiffSections", () => {
   it("handles header-less diffs with marker lines", () => {
     const changedText = "- removed without header\n+ added without header"
     const sections = groupDiffSections(changedText)
-    expect(sections.length).toBeGreaterThan(0)
+    expect(sections).toHaveLength(2)
+    expect(sections[0].type).toBe("removed")
+    expect(sections[0].lines).toEqual(["removed without header"])
+    expect(sections[1].type).toBe("added")
+    expect(sections[1].lines).toEqual(["added without header"])
   })
 })

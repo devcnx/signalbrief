@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button"
 import { significanceColor } from "@/lib/significance-utils"
 import { stripDiffMarkers } from "@/lib/readability"
 
-const DIFF_MARKER_RE = /^(--- removed|\+\+\+ added)/m
+const SECTION_HEADER_RE = /^(--- removed|\+\+\+ added)/m
+const REMOVED_LINE_RE = /^- /m
+const ADDED_LINE_RE = /^\+ /m
 
 function looksLikeRawDiff(text: string): boolean {
-  return DIFF_MARKER_RE.test(text)
+  if (SECTION_HEADER_RE.test(text)) return true
+  return REMOVED_LINE_RE.test(text) && ADDED_LINE_RE.test(text)
 }
 
 type NewsletterItem = {
